@@ -1,0 +1,27 @@
+# Node modules
+node_modules/
+npm-debug.log*
+yarn-error.log*
+
+# Build output
+dist/
+dist-ssr/
+
+# Environment variables (credentials)
+.env
+.env.local
+.env.*.local
+
+# Editor
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Logs
+*.log
