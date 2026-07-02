@@ -28,3 +28,4 @@ dist-ssr/
 
 # Backend uploads
 backend/uploads/
+backend/backups/

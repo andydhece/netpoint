@@ -829,6 +829,102 @@ export const AppProvider = ({ children }) => {
     }
   };
 
+  // --- Database Backup & Restore ---
+  const getBackups = async () => {
+    try {
+      const res = await apiRequest(`${API_BASE}/database.php?action=list`);
+      return res.backups;
+    } catch (err) {
+      alert(err.message);
+      return [];
+    }
+  };
+
+  const createBackup = async () => {
+    try {
+      const res = await apiRequest(`${API_BASE}/database.php?action=backup`, {
+        method: 'POST'
+      });
+      addNotification('Backup Sukses', `File ${res.backup.filename} berhasil dibuat.`);
+      return res.backup;
+    } catch (err) {
+      alert(err.message);
+      throw err;
+    }
+  };
+
+  const restoreBackup = async (filename) => {
+    try {
+      await apiRequest(`${API_BASE}/database.php?action=restore`, {
+        method: 'POST',
+        body: JSON.stringify({ filename })
+      });
+      addNotification('Restore Sukses', `Database berhasil dipulihkan dari ${filename}.`);
+      
+      const data = await apiRequest(`${API_BASE}/init.php`);
+      setOffices(data.offices);
+      setLocations(data.locations);
+      setDevices(data.devices);
+      setSpareparts(data.spareparts);
+      setSparepartUsage(data.sparepartUsage);
+      setTechnicianHistory(data.technicianHistory);
+      setDeviceHistory(data.deviceHistory);
+      setIncidents(data.incidents);
+      setMaintenance(data.maintenance);
+      setUsers(data.users);
+      if (data.deviceTypes && data.deviceTypes.length > 0) {
+        setDeviceTypes(data.deviceTypes);
+      }
+    } catch (err) {
+      alert(err.message);
+      throw err;
+    }
+  };
+
+  const deleteBackup = async (filename) => {
+    try {
+      await apiRequest(`${API_BASE}/database.php?action=delete`, {
+        method: 'POST',
+        body: JSON.stringify({ filename })
+      });
+      addNotification('Backup Dihapus', `File ${filename} berhasil dihapus.`);
+    } catch (err) {
+      alert(err.message);
+      throw err;
+    }
+  };
+
+  const uploadRestoreBackup = async (file) => {
+    try {
+      const formData = new FormData();
+      formData.append('backup_file', file);
+      
+      await apiRequest(`${API_BASE}/database.php?action=upload_restore`, {
+        method: 'POST',
+        body: formData
+      });
+      addNotification('Restore Sukses', `Database berhasil dipulihkan dari file unggahan.`);
+
+      const data = await apiRequest(`${API_BASE}/init.php`);
+      setOffices(data.offices);
+      setLocations(data.locations);
+      setDevices(data.devices);
+      setSpareparts(data.spareparts);
+      setSparepartUsage(data.sparepartUsage);
+      setTechnicianHistory(data.technicianHistory);
+      setDeviceHistory(data.deviceHistory);
+      setIncidents(data.incidents);
+      setMaintenance(data.maintenance);
+      setUsers(data.users);
+      if (data.deviceTypes && data.deviceTypes.length > 0) {
+        setDeviceTypes(data.deviceTypes);
+      }
+    } catch (err) {
+      alert(err.message);
+      throw err;
+    }
+  };
+
   return (
     <AppContext.Provider value={{
       offices,
@@ -897,6 +993,13 @@ export const AppProvider = ({ children }) => {
       deviceTypes,
       addDeviceType,
       deleteDeviceType,
+
+      // Database Backup & Restore actions
+      getBackups,
+      createBackup,
+      restoreBackup,
+      deleteBackup,
+      uploadRestoreBackup,
 
       // Formatting utils
       formatDate
