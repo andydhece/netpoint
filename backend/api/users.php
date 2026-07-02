@@ -3,6 +3,29 @@
 $pdo = require_once __DIR__ . '/../config/database.php';
 $action = isset($_GET['action']) ? $_GET['action'] : '';
 
+function processAvatar($avatar) {
+    if (strpos($avatar, 'data:image') === 0) {
+        $parts = explode(',', $avatar);
+        if (count($parts) === 2) {
+            $data = base64_decode($parts[1]);
+            $ext = 'png';
+            if (strpos($parts[0], 'jpeg') !== false || strpos($parts[0], 'jpg') !== false) {
+                $ext = 'jpg';
+            }
+            
+            $avatarsDir = __DIR__ . '/../uploads/avatars';
+            if (!file_exists($avatarsDir)) {
+                mkdir($avatarsDir, 0777, true);
+            }
+            
+            $filename = 'avatar_' . uniqid() . '.' . $ext;
+            file_put_contents($avatarsDir . '/' . $filename, $data);
+            return '/uploads/avatars/' . $filename;
+        }
+    }
+    return $avatar;
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $input = json_decode(file_get_contents('php://input'), true);
 
@@ -12,6 +35,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $password = isset($input['password']) ? $input['password'] : '';
         $role = isset($input['role']) ? trim($input['role']) : 'teknisi';
         $avatar = isset($input['avatar']) ? trim($input['avatar']) : '';
+        $avatar = processAvatar($avatar);
 
         if (!$name || !$username || !$password) {
             jsonResponse(['error' => 'Nama, username, dan password wajib diisi'], 400);
@@ -48,6 +72,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $username = isset($input['username']) ? trim($input['username']) : '';
         $role = isset($input['role']) ? trim($input['role']) : '';
         $avatar = isset($input['avatar']) ? trim($input['avatar']) : '';
+        $avatar = processAvatar($avatar);
 
         if (!$id || !$name || !$username || !$role) {
             jsonResponse(['error' => 'Data tidak lengkap untuk edit user'], 400);

@@ -12,7 +12,7 @@ const ROLE_META = {
   teknisi:  { label: 'Teknisi',       color: 'bg-sky-100 text-sky-700 border-sky-200 dark:bg-sky-950/30 dark:text-sky-400', icon: Wrench },
 };
 
-const emptyForm = { name: '', username: '', password: 'netpoint2024', role: 'teknisi', jabatan: '', status: 'aktif' };
+const emptyForm = { name: '', username: '', password: 'netpoint2024', role: 'teknisi', jabatan: '', status: 'aktif', avatar: '' };
 
 const UserManagementView = () => {
   const { 
@@ -25,7 +25,8 @@ const UserManagementView = () => {
     createBackup,
     restoreBackup,
     deleteBackup,
-    uploadRestoreBackup
+    uploadRestoreBackup,
+    getImageUrl
   } = useContext(AppContext);
 
   // Tab State
@@ -68,14 +69,14 @@ const UserManagementView = () => {
   });
 
   const handleOpenAdd = () => {
-    setForm(emptyForm);
+    setForm({ ...emptyForm, avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=80&h=80&fit=crop&crop=face' });
     setFormError('');
     setPanelMode('add');
   };
 
   const handleOpenEdit = (user) => {
     setTargetUser(user);
-    setForm({ name: user.name, username: user.username, password: user.password || '', role: user.role, jabatan: user.jabatan || '', status: user.status });
+    setForm({ name: user.name, username: user.username, password: user.password || '', role: user.role, jabatan: user.jabatan || '', status: user.status, avatar: user.avatar || '' });
     setFormError('');
     setPanelMode('edit');
   };
@@ -185,9 +186,41 @@ const UserManagementView = () => {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
   };
 
+  const handleAvatarChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setForm(prev => ({ ...prev, avatar: reader.result }));
+    };
+    reader.readAsDataURL(file);
+  };
+
   const FormFields = ({ isEdit = false }) => (
     <div className="space-y-4 font-sans">
       <div className="grid grid-cols-2 gap-3">
+        {/* Avatar upload preview section */}
+        <div className="col-span-2 flex items-center gap-4 bg-zinc-50 dark:bg-zinc-900/50 p-3 rounded-lg border border-zinc-200 dark:border-zinc-800">
+          <div className="relative w-12 h-12 rounded-full overflow-hidden border border-zinc-200 dark:border-zinc-750 bg-white flex-shrink-0">
+            <img 
+              src={getImageUrl(form.avatar)} 
+              alt="Preview" 
+              className="w-full h-full object-cover" 
+              onError={(e) => {
+                e.target.src = 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=80&h=80&fit=crop&crop=face';
+              }}
+            />
+          </div>
+          <div className="flex-1">
+            <span className="block text-xs font-semibold text-zinc-500 dark:text-zinc-400 mb-1">Foto Profil</span>
+            <label className="inline-flex items-center gap-1.5 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-zinc-700 dark:text-zinc-200 rounded px-2.5 py-1.5 text-[11px] font-bold shadow-sm hover:bg-zinc-55 dark:hover:bg-zinc-700 transition-colors cursor-pointer select-none">
+              <Upload className="w-3 h-3 text-[#059669]" />
+              Pilih Foto
+              <input type="file" accept="image/*" onChange={handleAvatarChange} className="hidden" />
+            </label>
+          </div>
+        </div>
+
         <div className="col-span-2">
           <label className="block text-xs font-semibold text-zinc-500 dark:text-zinc-400 mb-1.5">Nama Lengkap *</label>
           <input
@@ -356,7 +389,7 @@ const UserManagementView = () => {
                           <td className="px-5 py-4">
                             <div className="flex items-center gap-3">
                               <img
-                                src={user.avatar}
+                                src={getImageUrl(user.avatar)}
                                 alt={user.name}
                                 className="w-7 h-7 rounded-full object-cover border border-zinc-200 dark:border-zinc-850"
                                 onError={(e) => {
