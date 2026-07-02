@@ -13,6 +13,7 @@ import {
   Network,
   Package,
   Users,
+  Settings,
   LogOut
 } from 'lucide-react';
 
@@ -51,7 +52,7 @@ const Sidebar = ({ activeTab, setActiveTab }) => {
       roles: ['admin', 'pimpinan', 'teknisi']
     },
     { id: 'offices',     name: 'Kantor Wilayah',     icon: Building2,       roles: ['admin', 'pimpinan'] },
-    { id: 'users',       name: 'Manajemen Pengguna', icon: Users,           roles: ['admin'] },
+    { id: 'users',       name: 'Pengaturan',         icon: Settings,        roles: ['admin'] },
   ];
 
   const filtered = currentUser ? menuItems.filter(item => item.roles.includes(currentUser.role)) : [];

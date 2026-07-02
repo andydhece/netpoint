@@ -76,7 +76,7 @@ function AppContent() {
       maintenance: 'Audit & Pemeliharaan',
       spareparts: 'Inventaris Suku Cadang',
       offices: 'Kantor Wilayah',
-      users: 'Manajemen Pengguna',
+      users: 'Pengaturan',
     };
     if (activeTab === 'locations') {
       crumbs.push({ label: 'Titik Lokasi', active: !selectedLocationId });
