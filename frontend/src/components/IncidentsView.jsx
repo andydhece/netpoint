@@ -49,7 +49,8 @@ const IncidentsView = ({ selectedLocationId, setSelectedLocationId }) => {
   const [selectedTech, setSelectedTech] = useState('Rian IT Support');
 
   // Modal states
-  const [isNewIncidentOpen, setIsNewIncidentOpen] = useState(false);
+  // Panel state
+  const [isPanelOpen, setIsPanelOpen] = useState(false);
   const [newNoteText, setNewNoteText] = useState('');
   const [isRejectOpen, setIsRejectOpen] = useState(false);
   const [rejectReasonText, setRejectReasonText] = useState('');
@@ -66,7 +67,7 @@ const IncidentsView = ({ selectedLocationId, setSelectedLocationId }) => {
 
   const activeIncident = incidents.find(i => i.id === activeIncidentId) || null;
 
-  // Technician list — dinamis dari users context (role teknisi, status aktif)
+  // Technician list â€” dinamis dari users context (role teknisi, status aktif)
   const techniciansList = users
     ? users.filter(u => u.role === 'teknisi' && u.status === 'aktif').map(u => u.name)
     : ['Rian IT Support', 'Budi Utomo', 'Siti Aminah', 'Joko Susilo'];
@@ -102,7 +103,7 @@ const IncidentsView = ({ selectedLocationId, setSelectedLocationId }) => {
     e.preventDefault();
     if (!newIncForm.title.trim()) return;
     createIncident(newIncForm);
-    setIsNewIncidentOpen(false);
+    setIsPanelOpen(false);
     setNewIncForm({
       title: '',
       severity: 'Medium',
@@ -226,10 +227,12 @@ const IncidentsView = ({ selectedLocationId, setSelectedLocationId }) => {
     ];
   };
 
+  const hasRightPanel = !!activeIncident || isPanelOpen;
+
   return (
     <div className="flex gap-6 h-full items-start font-sans">
       {/* ===== LEFT: TICKET LIST ===== */}
-      <div className={`transition-all duration-300 ${activeIncident ? 'w-3/5' : 'w-full'} flex flex-col space-y-4`}>
+      <div className={`transition-all duration-300 ${hasRightPanel ? 'w-3/5' : 'w-full'} flex flex-col space-y-4`}>
         
         {/* Toolbar */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 bg-white dark:bg-[#0c0c0f] border border-zinc-200 dark:border-zinc-800 rounded-xl p-4 shadow-sm">
@@ -287,10 +290,10 @@ const IncidentsView = ({ selectedLocationId, setSelectedLocationId }) => {
             </label>
           </div>
 
-          {/* Create button – hidden for Pimpinan */}
+          {/* Create button â€“ hidden for Pimpinan */}
           {currentUser.role !== 'pimpinan' && (
             <button
-              onClick={() => setIsNewIncidentOpen(true)}
+              onClick={() => { setActiveIncidentId(null); setIsPanelOpen(true); }}
               className="shrink-0 bg-rose-600 hover:bg-rose-700 text-white rounded-lg px-4 py-2 text-xs font-semibold flex items-center gap-2 shadow-sm transition-colors"
             >
               <Plus className="w-3.5 h-3.5" /> Laporkan Insiden
@@ -389,7 +392,7 @@ const IncidentsView = ({ selectedLocationId, setSelectedLocationId }) => {
 
           <hr className="border-zinc-100 dark:border-zinc-800" />
 
-          {/* ── ADMIN: Assign Panel ── */}
+          {/* â”€â”€ ADMIN: Assign Panel â”€â”€ */}
           {currentUser.role === 'admin' && ['Open', 'Assigned', 'Rejected'].includes(activeIncident.status) && (
             <div className="bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-3 space-y-2">
               <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Tugaskan Tiket ke Teknisi</p>
@@ -411,7 +414,7 @@ const IncidentsView = ({ selectedLocationId, setSelectedLocationId }) => {
             </div>
           )}
 
-          {/* ── TEKNISI: Aksi Lapangan ── */}
+          {/* â”€â”€ TEKNISI: Aksi Lapangan â”€â”€ */}
           {(() => {
             // Cek apakah tiket ini milik teknisi yang sedang login
             const isMyTicket = currentUser.role === 'teknisi' && (
@@ -451,7 +454,7 @@ const IncidentsView = ({ selectedLocationId, setSelectedLocationId }) => {
             );
           })()}
 
-          {/* ── ADMIN: Mulai Pengerjaan (shortcut tanpa perlu assign) ── */}
+          {/* â”€â”€ ADMIN: Mulai Pengerjaan (shortcut tanpa perlu assign) â”€â”€ */}
           {currentUser.role === 'admin' && ['Open', 'Assigned', 'Rejected'].includes(activeIncident.status) && (
             <div className="mt-1">
               <button
@@ -463,7 +466,7 @@ const IncidentsView = ({ selectedLocationId, setSelectedLocationId }) => {
             </div>
           )}
 
-          {/* ── ADMIN: Verifikasi Resolusi ── */}
+          {/* â”€â”€ ADMIN: Verifikasi Resolusi â”€â”€ */}
           {currentUser.role === 'admin' && activeIncident.status === 'Resolved' && (
             <div className="bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-3 space-y-3">
               <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Verifikasi Solusi (Admin)</p>
@@ -490,7 +493,7 @@ const IncidentsView = ({ selectedLocationId, setSelectedLocationId }) => {
             </div>
           )}
 
-          {/* ── REJECT REASON ── */}
+          {/* â”€â”€ REJECT REASON â”€â”€ */}
           {isRejectOpen && (
             <div className="bg-rose-50 dark:bg-rose-950/20 border border-rose-200 rounded-lg p-3 space-y-2">
               <p className="text-xs font-bold text-rose-700">Alasan Penolakan:</p>
@@ -518,7 +521,7 @@ const IncidentsView = ({ selectedLocationId, setSelectedLocationId }) => {
             </div>
           )}
 
-          {/* ── RUNBOOK ── */}
+          {/* â”€â”€ RUNBOOK â”€â”€ */}
           <div className="bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-3">
             <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider mb-2.5 flex items-center gap-1.5">
               <CheckSquare className="w-3.5 h-3.5 text-emerald-500" /> Panduan Troubleshooting
@@ -533,7 +536,7 @@ const IncidentsView = ({ selectedLocationId, setSelectedLocationId }) => {
             </ul>
           </div>
 
-          {/* ── NOTES / ACTIVITY LOG ── */}
+          {/* â”€â”€ NOTES / ACTIVITY LOG â”€â”€ */}
           <div className="flex flex-col flex-1 min-h-0">
             <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider mb-2 flex items-center gap-1.5">
               <MessageSquare className="w-3.5 h-3.5" /> Catatan Aktivitas
@@ -569,87 +572,90 @@ const IncidentsView = ({ selectedLocationId, setSelectedLocationId }) => {
         </div>
       )}
 
-      {/* ===== MODAL: NEW INCIDENT ===== */}
-      {isNewIncidentOpen && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-[#0c0c0f] rounded-xl border border-zinc-200 dark:border-zinc-800 shadow-xl w-full max-w-md p-6 relative">
-            <button onClick={() => setIsNewIncidentOpen(false)} className="absolute top-4 right-4 text-zinc-400 hover:text-zinc-600">
+      {/* ===== INLINE PANEL: NEW INCIDENT ===== */}
+      {isPanelOpen && (
+        <div className="w-2/5 bg-white dark:bg-[#0c0c0f] border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-sm flex flex-col transition-all duration-300 overflow-y-auto">
+          {/* Header */}
+          <div className="flex items-start justify-between p-5 border-b border-zinc-100 dark:border-zinc-800 sticky top-0 bg-white dark:bg-[#0c0c0f] z-10">
+            <div>
+              <div className="text-[10px] font-bold text-rose-600 uppercase tracking-widest flex items-center gap-1 mb-1">
+                <Plus className="w-3 h-3" /> Tiket Insiden Baru
+              </div>
+              <h2 className="text-base font-extrabold text-zinc-900 dark:text-zinc-50">Laporkan Masalah Jaringan</h2>
+            </div>
+            <button onClick={() => setIsPanelOpen(false)} className="p-1 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-500 rounded-lg mt-0.5">
               <X className="w-4 h-4" />
             </button>
-            <h3 className="text-base font-bold text-zinc-900 dark:text-zinc-50 mb-4">Laporkan Masalah Jaringan</h3>
-            <form onSubmit={handleCreateSubmit} className="space-y-4">
-              <div>
-                <label className="block text-xs font-medium text-zinc-500 mb-1.5">Judul Insiden</label>
-                <input
-                  type="text" required value={newIncForm.title}
-                  onChange={(e) => setNewIncForm({ ...newIncForm, title: e.target.value })}
-                  className="w-full bg-white dark:bg-[#09090b] border border-zinc-200 dark:border-zinc-800 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Contoh: Switch offline karena korsleting"
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-medium text-zinc-500 mb-1.5">Keparahan</label>
-                  <select value={newIncForm.severity} onChange={(e) => setNewIncForm({ ...newIncForm, severity: e.target.value })}
-                    className="w-full bg-white dark:bg-[#09090b] border border-zinc-200 dark:border-zinc-800 rounded-lg px-3 py-2 text-sm">
-                    <option value="Critical">Kritis</option>
-                    <option value="High">Tinggi</option>
-                    <option value="Medium">Sedang</option>
-                    <option value="Low">Rendah</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-zinc-500 mb-1.5">Tugaskan Ke</label>
-                  <select value={newIncForm.assignedTo} onChange={(e) => setNewIncForm({ ...newIncForm, assignedTo: e.target.value })}
-                    className="w-full bg-white dark:bg-[#09090b] border border-zinc-200 dark:border-zinc-800 rounded-lg px-3 py-2 text-sm">
-                    {techniciansList.map(t => <option key={t} value={t}>{t}</option>)}
-                  </select>
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-medium text-zinc-500 mb-1.5">Lokasi</label>
-                  <select value={newIncForm.locationId}
-                    onChange={(e) => {
-                      const id = e.target.value;
-                      const firstDev = devices.find(d => d.locationId === parseInt(id));
-                      setNewIncForm({ ...newIncForm, locationId: id, deviceId: firstDev?.id.toString() || '' });
-                    }}
-                    className="w-full bg-white dark:bg-[#09090b] border border-zinc-200 dark:border-zinc-800 rounded-lg px-3 py-2 text-sm">
-                    {locations.map(l => <option key={l.id} value={l.id}>{l.name}</option>)}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-zinc-500 mb-1.5">Perangkat</label>
-                  <select value={newIncForm.deviceId} onChange={(e) => setNewIncForm({ ...newIncForm, deviceId: e.target.value })}
-                    className="w-full bg-white dark:bg-[#09090b] border border-zinc-200 dark:border-zinc-800 rounded-lg px-3 py-2 text-sm">
-                    <option value="">Tidak ada perangkat</option>
-                    {devices.filter(d => d.locationId === parseInt(newIncForm.locationId)).map(d => (
-                      <option key={d.id} value={d.id}>{d.name}</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-zinc-500 mb-1.5">Catatan Awal</label>
-                <textarea value={newIncForm.note} onChange={(e) => setNewIncForm({ ...newIncForm, note: e.target.value })}
-                  rows={3} className="w-full bg-white dark:bg-[#09090b] border border-zinc-200 dark:border-zinc-800 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Deskripsi kondisi jaringan, lampu indikator, dll..." />
-              </div>
-              <div className="flex justify-end gap-2 pt-1">
-                <button type="button" onClick={() => setIsNewIncidentOpen(false)}
-                  className="bg-white dark:bg-[#262626] border border-zinc-200 dark:border-zinc-700 text-zinc-700 dark:text-zinc-200 rounded-lg px-4 py-2 text-xs font-semibold">
-                  Batal
-                </button>
-                <button type="submit" className="bg-rose-600 hover:bg-rose-700 text-white rounded-lg px-4 py-2 text-xs font-semibold">
-                  Buat Tiket
-                </button>
-              </div>
-            </form>
           </div>
+          <form onSubmit={handleCreateSubmit} className="p-5 space-y-4 flex-1">
+            <div>
+              <label className="block text-xs font-medium text-zinc-500 mb-1.5">Judul Insiden</label>
+              <input type="text" required value={newIncForm.title}
+                onChange={(e) => setNewIncForm({ ...newIncForm, title: e.target.value })}
+                className="w-full bg-zinc-50 dark:bg-[#09090b] border border-zinc-200 dark:border-zinc-800 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500"
+                placeholder="Contoh: Switch offline karena korsleting" />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-medium text-zinc-500 mb-1.5">Keparahan</label>
+                <select value={newIncForm.severity} onChange={(e) => setNewIncForm({ ...newIncForm, severity: e.target.value })}
+                  className="w-full bg-zinc-50 dark:bg-[#09090b] border border-zinc-200 dark:border-zinc-800 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500">
+                  <option value="Critical">Kritis</option>
+                  <option value="High">Tinggi</option>
+                  <option value="Medium">Sedang</option>
+                  <option value="Low">Rendah</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-zinc-500 mb-1.5">Tugaskan Ke</label>
+                <select value={newIncForm.assignedTo} onChange={(e) => setNewIncForm({ ...newIncForm, assignedTo: e.target.value })}
+                  className="w-full bg-zinc-50 dark:bg-[#09090b] border border-zinc-200 dark:border-zinc-800 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500">
+                  {techniciansList.map(t => <option key={t} value={t}>{t}</option>)}
+                </select>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-medium text-zinc-500 mb-1.5">Lokasi</label>
+                <select value={newIncForm.locationId}
+                  onChange={(e) => {
+                    const id = e.target.value;
+                    const firstDev = devices.find(d => d.locationId === parseInt(id));
+                    setNewIncForm({ ...newIncForm, locationId: id, deviceId: firstDev?.id.toString() || '' });
+                  }}
+                  className="w-full bg-zinc-50 dark:bg-[#09090b] border border-zinc-200 dark:border-zinc-800 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500">
+                  {locations.map(l => <option key={l.id} value={l.id}>{l.name}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-zinc-500 mb-1.5">Perangkat</label>
+                <select value={newIncForm.deviceId} onChange={(e) => setNewIncForm({ ...newIncForm, deviceId: e.target.value })}
+                  className="w-full bg-zinc-50 dark:bg-[#09090b] border border-zinc-200 dark:border-zinc-800 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500">
+                  <option value="">Tidak ada perangkat</option>
+                  {devices.filter(d => d.locationId === parseInt(newIncForm.locationId)).map(d => (
+                    <option key={d.id} value={d.id}>{d.name}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-zinc-500 mb-1.5">Catatan Awal</label>
+              <textarea value={newIncForm.note} onChange={(e) => setNewIncForm({ ...newIncForm, note: e.target.value })}
+                rows={3} className="w-full bg-zinc-50 dark:bg-[#09090b] border border-zinc-200 dark:border-zinc-800 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500"
+                placeholder="Deskripsi kondisi jaringan, lampu indikator, dll..." />
+            </div>
+            <div className="flex gap-2 pt-1">
+              <button type="button" onClick={() => setIsPanelOpen(false)}
+                className="flex-1 bg-white dark:bg-[#262626] border border-zinc-200 dark:border-zinc-700 text-zinc-700 dark:text-zinc-200 rounded-lg py-2 text-xs font-semibold transition-colors">
+                Batal
+              </button>
+              <button type="submit" className="flex-1 bg-rose-600 hover:bg-rose-700 text-white rounded-lg py-2 text-xs font-semibold transition-colors">
+                Buat Tiket
+              </button>
+            </div>
+          </form>
         </div>
       )}
-
       {/* ===== MODAL: RESOLVE WITH EVIDENCE ===== */}
       {isResolveOpen && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
@@ -724,7 +730,7 @@ const IncidentsView = ({ selectedLocationId, setSelectedLocationId }) => {
                   )}
                   {signatureSaved && (
                     <div className="absolute bottom-1 right-2 text-[10px] text-emerald-700 bg-emerald-100 border border-emerald-300 px-2 py-0.5 rounded font-bold">
-                      ✓ Terkunci
+                      âœ“ Terkunci
                     </div>
                   )}
                 </div>

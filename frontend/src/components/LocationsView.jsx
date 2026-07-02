@@ -40,8 +40,8 @@ const LocationsView = ({ selectedLocationId, setSelectedLocationId, setActiveTab
   // Sidebar Detail sub-tab state
   const [sidebarTab, setSidebarTab] = useState('perangkat'); 
 
-  // Modals
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  // Panels â€” isAddPanelOpen replaces modal popup
+  const [isAddPanelOpen, setIsAddPanelOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [addForm, setAddForm] = useState({ 
     name: '', 
@@ -109,14 +109,16 @@ const LocationsView = ({ selectedLocationId, setSelectedLocationId, setActiveTab
       picPosition: 'Teknisi Lapangan',
       max_bandwidth_mbps: '100'
     });
-    setIsAddModalOpen(true);
+    // Close detail panel when opening add panel
+    setSelectedLocationId(null);
+    setIsAddPanelOpen(true);
   };
 
   const handleAddSubmit = (e) => {
     e.preventDefault();
     if (!addForm.name.trim()) return;
     const newId = addLocation(addForm);
-    setIsAddModalOpen(false);
+    setIsAddPanelOpen(false);
     setSelectedLocationId(newId);
   };
 
@@ -149,10 +151,13 @@ const LocationsView = ({ selectedLocationId, setSelectedLocationId, setActiveTab
     }
   };
 
+  // Determine left column width based on panels open
+  const hasRightPanel = activeLocation || isAddPanelOpen;
+
   return (
     <div className="flex gap-6 h-full items-start relative font-sans">
       {/* Left Column: Locations Table */}
-      <div className={`transition-all duration-300 ${activeLocation ? 'w-3/5' : 'w-full'} flex flex-col space-y-4`}>
+      <div className={`transition-all duration-300 ${hasRightPanel ? 'w-3/5' : 'w-full'} flex flex-col space-y-4`}>
         
         {/* Toolbar Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white dark:bg-[#0c0c0f] border border-zinc-200 dark:border-zinc-800 rounded-xl p-4 shadow-sm">
@@ -389,7 +394,7 @@ const LocationsView = ({ selectedLocationId, setSelectedLocationId, setActiveTab
                   >
                     <div>
                       <h4 className="text-xs font-bold text-zinc-805 dark:text-zinc-200">{dev.name}</h4>
-                      <p className="text-[10px] text-zinc-450 font-mono mt-0.5">{dev.type} • {dev.ipAddress}</p>
+                      <p className="text-[10px] text-zinc-450 font-mono mt-0.5">{dev.type} â€¢ {dev.ipAddress}</p>
                     </div>
                     <div className="flex items-center gap-2">
                       <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-bold ${
@@ -547,146 +552,151 @@ const LocationsView = ({ selectedLocationId, setSelectedLocationId, setActiveTab
         </div>
       )}
 
-      {/* ADD LOCATION MODAL */}
-      {isAddModalOpen && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-[#0c0c0f] rounded-xl border border-zinc-200 dark:border-zinc-800 shadow-xl w-full max-w-lg p-6 relative">
+      {/* ADD LOCATION â€” Inline Sliding Panel (replaces modal popup) */}
+      {isAddPanelOpen && (
+        <div className="w-2/5 bg-white dark:bg-[#0c0c0f] border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-sm flex flex-col h-[650px] transition-all duration-300 relative overflow-y-auto">
+          
+          {/* Panel Header */}
+          <div className="flex items-start justify-between p-5 border-b border-zinc-100 dark:border-zinc-800 sticky top-0 bg-white dark:bg-[#0c0c0f] z-10">
+            <div>
+              <div className="text-[10px] font-bold text-[#059669] uppercase tracking-widest flex items-center gap-1 mb-1">
+                <Plus className="w-3 h-3" /> Tambah Titik Baru
+              </div>
+              <h2 className="text-base font-extrabold text-zinc-900 dark:text-zinc-50">Daftarkan Titik Lokasi</h2>
+            </div>
             <button
-              onClick={() => setIsAddModalOpen(false)}
-              className="absolute top-4 right-4 text-zinc-400 hover:text-zinc-600"
+              onClick={() => setIsAddPanelOpen(false)}
+              className="p-1 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-500 dark:text-zinc-400 rounded-lg mt-0.5"
             >
               <X className="w-4 h-4" />
             </button>
-            
-            <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-50 mb-4">Daftarkan Titik Lokasi Baru</h3>
-            
-            <form onSubmit={handleAddSubmit} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-medium text-zinc-500 mb-1.5">Nama Titik / Lokasi</label>
-                  <input
-                    type="text"
-                    required
-                    value={addForm.name}
-                    onChange={(e) => setAddForm({ ...addForm, name: e.target.value })}
-                    className="w-full bg-[#ffffff] dark:bg-[#09090b] border border-zinc-200 dark:border-zinc-800 rounded-lg px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-zinc-955 dark:text-zinc-50"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-zinc-500 mb-1.5">Kantor Wilayah</label>
-                  <select
-                    value={addForm.officeId}
-                    onChange={(e) => setAddForm({ ...addForm, officeId: e.target.value })}
-                    className="w-full bg-[#ffffff] dark:bg-[#09090b] border border-zinc-200 dark:border-zinc-800 rounded-lg px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-zinc-850 dark:text-zinc-100"
-                  >
-                    {offices.map(o => (
-                      <option key={o.id} value={o.id}>{o.name}</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-medium text-zinc-500 mb-1.5">Batas Bandwidth (Mbps)</label>
-                  <input
-                    type="number"
-                    required
-                    value={addForm.max_bandwidth_mbps}
-                    onChange={(e) => setAddForm({ ...addForm, max_bandwidth_mbps: e.target.value })}
-                    className="w-full bg-[#ffffff] dark:bg-[#09090b] border border-zinc-200 dark:border-zinc-800 rounded-lg px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-zinc-950 dark:text-zinc-50 font-mono"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-zinc-500 mb-1.5">Tgl Instalasi</label>
-                  <input
-                    type="date"
-                    required
-                    value={addForm.installationDate}
-                    onChange={(e) => setAddForm({ ...addForm, installationDate: e.target.value })}
-                    className="w-full bg-[#ffffff] dark:bg-[#09090b] border border-zinc-200 dark:border-zinc-800 rounded-lg px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-zinc-950 dark:text-zinc-50"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-medium text-zinc-500 mb-1.5">Latitude (GPS)</label>
-                  <input
-                    type="text"
-                    required
-                    value={addForm.latitude}
-                    onChange={(e) => setAddForm({ ...addForm, latitude: e.target.value })}
-                    className="w-full bg-[#ffffff] dark:bg-[#09090b] border border-zinc-200 dark:border-zinc-800 rounded-lg px-3 py-2 text-xs font-mono shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-zinc-950 dark:text-zinc-55"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-zinc-500 mb-1.5">Longitude (GPS)</label>
-                  <input
-                    type="text"
-                    required
-                    value={addForm.longitude}
-                    onChange={(e) => setAddForm({ ...addForm, longitude: e.target.value })}
-                    className="w-full bg-[#ffffff] dark:bg-[#09090b] border border-zinc-200 dark:border-zinc-800 rounded-lg px-3 py-2 text-xs font-mono shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-zinc-950 dark:text-zinc-55"
-                  />
-                </div>
-              </div>
-
-              <div className="bg-zinc-50 dark:bg-zinc-900 border border-zinc-250 dark:border-zinc-800 rounded-lg p-3 space-y-3">
-                <span className="text-xs font-bold text-zinc-500 dark:text-zinc-400 block">Person In Charge (PIC)</span>
-                
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-[10px] font-medium text-zinc-500 mb-1">Nama PIC</label>
-                    <input
-                      type="text"
-                      required
-                      value={addForm.picName}
-                      onChange={(e) => setAddForm({ ...addForm, picName: e.target.value })}
-                      className="w-full bg-[#ffffff] dark:bg-[#09090b] border border-zinc-200 dark:border-zinc-800 rounded-lg px-3 py-1.5 text-xs shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-zinc-950 dark:text-zinc-55"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[10px] font-medium text-zinc-500 mb-1">Kontak PIC</label>
-                    <input
-                      type="text"
-                      required
-                      value={addForm.picContact}
-                      onChange={(e) => setAddForm({ ...addForm, picContact: e.target.value })}
-                      className="w-full bg-[#ffffff] dark:bg-[#09090b] border border-zinc-200 dark:border-zinc-800 rounded-lg px-3 py-1.5 text-xs font-mono shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-zinc-950 dark:text-zinc-55"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-[10px] font-medium text-zinc-500 mb-1">Jabatan PIC</label>
-                  <input
-                    type="text"
-                    required
-                    value={addForm.picPosition}
-                    onChange={(e) => setAddForm({ ...addForm, picPosition: e.target.value })}
-                    className="w-full bg-[#ffffff] dark:bg-[#09090b] border border-zinc-200 dark:border-zinc-800 rounded-lg px-3 py-1.5 text-xs shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-zinc-950 dark:text-zinc-55"
-                  />
-                </div>
-              </div>
-
-              <div className="flex justify-end gap-2 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setIsAddModalOpen(false)}
-                  className="bg-[#ffffff] dark:bg-[#262626] hover:bg-zinc-50 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-200 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-2 text-xs font-semibold"
-                >
-                  Batal
-                </button>
-                <button
-                  type="submit"
-                  className="bg-[#059669] hover:bg-[#047857] text-white rounded-lg px-4 py-2 text-xs font-semibold shadow-sm"
-                >
-                  Simpan Lokasi
-                </button>
-              </div>
-            </form>
           </div>
+
+          {/* Panel Form Body */}
+          <form onSubmit={handleAddSubmit} className="p-5 space-y-4 flex-1">
+            <div className="grid grid-cols-1 gap-3">
+              <div>
+                <label className="block text-xs font-medium text-zinc-500 mb-1.5">Nama Titik / Lokasi</label>
+                <input
+                  type="text"
+                  required
+                  value={addForm.name}
+                  onChange={(e) => setAddForm({ ...addForm, name: e.target.value })}
+                  className="w-full bg-zinc-50 dark:bg-[#09090b] border border-zinc-200 dark:border-zinc-800 rounded-lg px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-[#059669] text-zinc-950 dark:text-zinc-50"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-zinc-500 mb-1.5">Kantor Wilayah</label>
+                <select
+                  value={addForm.officeId}
+                  onChange={(e) => setAddForm({ ...addForm, officeId: e.target.value })}
+                  className="w-full bg-zinc-50 dark:bg-[#09090b] border border-zinc-200 dark:border-zinc-800 rounded-lg px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-[#059669] text-zinc-850 dark:text-zinc-100"
+                >
+                  {offices.map(o => (
+                    <option key={o.id} value={o.id}>{o.name}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-medium text-zinc-500 mb-1.5">Batas Bandwidth (Mbps)</label>
+                <input
+                  type="number"
+                  required
+                  value={addForm.max_bandwidth_mbps}
+                  onChange={(e) => setAddForm({ ...addForm, max_bandwidth_mbps: e.target.value })}
+                  className="w-full bg-zinc-50 dark:bg-[#09090b] border border-zinc-200 dark:border-zinc-800 rounded-lg px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-[#059669] text-zinc-950 dark:text-zinc-50 font-mono"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-zinc-500 mb-1.5">Tgl Instalasi</label>
+                <input
+                  type="date"
+                  required
+                  value={addForm.installationDate}
+                  onChange={(e) => setAddForm({ ...addForm, installationDate: e.target.value })}
+                  className="w-full bg-zinc-50 dark:bg-[#09090b] border border-zinc-200 dark:border-zinc-800 rounded-lg px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-[#059669] text-zinc-950 dark:text-zinc-50"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-medium text-zinc-500 mb-1.5">Latitude (GPS)</label>
+                <input
+                  type="text"
+                  required
+                  value={addForm.latitude}
+                  onChange={(e) => setAddForm({ ...addForm, latitude: e.target.value })}
+                  className="w-full bg-zinc-50 dark:bg-[#09090b] border border-zinc-200 dark:border-zinc-800 rounded-lg px-3 py-2 text-xs font-mono shadow-sm focus:outline-none focus:ring-2 focus:ring-[#059669] text-zinc-950 dark:text-zinc-55"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-zinc-500 mb-1.5">Longitude (GPS)</label>
+                <input
+                  type="text"
+                  required
+                  value={addForm.longitude}
+                  onChange={(e) => setAddForm({ ...addForm, longitude: e.target.value })}
+                  className="w-full bg-zinc-50 dark:bg-[#09090b] border border-zinc-200 dark:border-zinc-800 rounded-lg px-3 py-2 text-xs font-mono shadow-sm focus:outline-none focus:ring-2 focus:ring-[#059669] text-zinc-950 dark:text-zinc-55"
+                />
+              </div>
+            </div>
+
+            <div className="bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-3 space-y-3">
+              <span className="text-xs font-bold text-zinc-500 dark:text-zinc-400 block">Person In Charge (PIC)</span>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[10px] font-medium text-zinc-500 mb-1">Nama PIC</label>
+                  <input
+                    type="text"
+                    required
+                    value={addForm.picName}
+                    onChange={(e) => setAddForm({ ...addForm, picName: e.target.value })}
+                    className="w-full bg-white dark:bg-[#09090b] border border-zinc-200 dark:border-zinc-800 rounded-lg px-3 py-1.5 text-xs shadow-sm focus:outline-none focus:ring-2 focus:ring-[#059669] text-zinc-950 dark:text-zinc-55"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-medium text-zinc-500 mb-1">Kontak PIC</label>
+                  <input
+                    type="text"
+                    required
+                    value={addForm.picContact}
+                    onChange={(e) => setAddForm({ ...addForm, picContact: e.target.value })}
+                    className="w-full bg-white dark:bg-[#09090b] border border-zinc-200 dark:border-zinc-800 rounded-lg px-3 py-1.5 text-xs font-mono shadow-sm focus:outline-none focus:ring-2 focus:ring-[#059669] text-zinc-950 dark:text-zinc-55"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-[10px] font-medium text-zinc-500 mb-1">Jabatan PIC</label>
+                <input
+                  type="text"
+                  required
+                  value={addForm.picPosition}
+                  onChange={(e) => setAddForm({ ...addForm, picPosition: e.target.value })}
+                  className="w-full bg-white dark:bg-[#09090b] border border-zinc-200 dark:border-zinc-800 rounded-lg px-3 py-1.5 text-xs shadow-sm focus:outline-none focus:ring-2 focus:ring-[#059669] text-zinc-950 dark:text-zinc-55"
+                />
+              </div>
+            </div>
+
+            <div className="flex gap-2 pt-1">
+              <button
+                type="button"
+                onClick={() => setIsAddPanelOpen(false)}
+                className="flex-1 bg-white dark:bg-[#262626] hover:bg-zinc-50 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-200 border border-zinc-200 dark:border-zinc-700 rounded-lg py-2 text-xs font-semibold transition-colors"
+              >
+                Batal
+              </button>
+              <button
+                type="submit"
+                className="flex-1 bg-[#059669] hover:bg-[#047857] text-white rounded-lg py-2 text-xs font-semibold shadow-sm transition-colors"
+              >
+                Simpan Lokasi
+              </button>
+            </div>
+          </form>
         </div>
       )}
 

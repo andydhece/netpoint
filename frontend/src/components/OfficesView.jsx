@@ -1,4 +1,4 @@
-import React, { useContext, useState } from 'react';
+﻿import React, { useContext, useState } from 'react';
 import { AppContext } from '../context/AppContext';
 import { 
   Building2, 
@@ -22,8 +22,8 @@ const OfficesView = () => {
 
   // States
   const [selectedOfficeId, setSelectedOfficeId] = useState(offices[0]?.id || null);
-  const [isAddOpen, setIsAddOpen] = useState(false);
-  const [isEditOpen, setIsEditOpen] = useState(false);
+  // Panel state â€” 'add' | 'edit' | null
+  const [panelMode, setPanelMode] = useState(null);
   const [newOfficeName, setNewOfficeName] = useState('');
   const [editForm, setEditForm] = useState({ id: null, name: '' });
 
@@ -39,19 +39,20 @@ const OfficesView = () => {
     if (!newOfficeName.trim()) return;
     addOffice(newOfficeName.trim());
     setNewOfficeName('');
-    setIsAddOpen(false);
+    setPanelMode(null);
   };
 
   const handleOpenEdit = (office) => {
     setEditForm({ id: office.id, name: office.name });
-    setIsEditOpen(true);
+    setSelectedOfficeId(office.id);
+    setPanelMode('edit');
   };
 
   const handleEditSubmit = (e) => {
     e.preventDefault();
     if (!editForm.name.trim()) return;
     editOffice(editForm.id, editForm.name.trim());
-    setIsEditOpen(false);
+    setPanelMode(null);
   };
 
   const handleDelete = (id) => {
@@ -72,7 +73,7 @@ const OfficesView = () => {
   return (
     <div className="flex gap-6 h-full items-start relative font-sans">
       {/* Left Column: Offices List Table */}
-      <div className={`transition-all duration-300 ${activeOffice ? 'w-1/2' : 'w-full'} flex flex-col space-y-4`}>
+      <div className={`transition-all duration-300 ${(activeOffice || panelMode) ? 'w-3/5' : 'w-full'} flex flex-col space-y-4`}>
         
         {/* Toolbar header */}
         <div className="flex justify-between items-center bg-white dark:bg-[#0c0c0f] border border-zinc-200 dark:border-zinc-800 rounded-xl p-4 shadow-sm">
@@ -82,7 +83,7 @@ const OfficesView = () => {
           </div>
           {currentUser.role === 'admin' && (
             <button
-              onClick={() => setIsAddOpen(true)}
+              onClick={() => { setSelectedOfficeId(null); setNewOfficeName(''); setPanelMode('add'); }}
               className="bg-[#059669] hover:bg-[#047857] text-white rounded-lg px-4 py-2 font-medium text-xs flex items-center justify-center gap-2 shadow-sm transition-colors"
             >
               <Plus className="w-4 h-4" />
@@ -168,7 +169,7 @@ const OfficesView = () => {
 
       {/* Right Column: Office Association Details Panel */}
       {activeOffice && (
-        <div className="w-1/2 bg-white dark:bg-[#0c0c0f] border border-zinc-200 dark:border-zinc-800 rounded-xl p-5 shadow-sm space-y-5 flex flex-col h-[570px] transition-all duration-300 relative">
+        <div className="w-2/5 bg-white dark:bg-[#0c0c0f] border border-zinc-200 dark:border-zinc-800 rounded-xl p-5 shadow-sm space-y-5 flex flex-col h-[570px] transition-all duration-300 relative">
           
           <div>
             <div className="text-[10px] font-bold text-[#059669] uppercase tracking-widest flex items-center gap-1">
@@ -225,90 +226,50 @@ const OfficesView = () => {
         </div>
       )}
 
-      {/* ADD OFFICE MODAL */}
-      {isAddOpen && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-[#0c0c0f] rounded-xl border border-zinc-200 dark:border-zinc-800 shadow-xl w-full max-sm p-6 relative">
-            <button
-              onClick={() => setIsAddOpen(false)}
-              className="absolute top-4 right-4 text-zinc-400 hover:text-zinc-600"
-            >
+      {/* ADD / EDIT OFFICE â€” Inline Sliding Panel */}
+      {panelMode && (
+        <div className="w-2/5 bg-white dark:bg-[#0c0c0f] border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-sm flex flex-col transition-all duration-300 overflow-y-auto">
+          {/* Header */}
+          <div className="flex items-start justify-between p-5 border-b border-zinc-100 dark:border-zinc-800 sticky top-0 bg-white dark:bg-[#0c0c0f] z-10">
+            <div>
+              <div className="text-[10px] font-bold text-[#059669] uppercase tracking-widest flex items-center gap-1 mb-1">
+                <Plus className="w-3 h-3" /> {panelMode === 'add' ? 'Wilayah Baru' : 'Ubah Wilayah'}
+              </div>
+              <h2 className="text-base font-extrabold text-zinc-900 dark:text-zinc-50">
+                {panelMode === 'add' ? 'Buat Entitas Wilayah' : 'Edit Nama Wilayah'}
+              </h2>
+            </div>
+            <button onClick={() => setPanelMode(null)} className="p-1 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-500 rounded-lg mt-0.5">
               <X className="w-4 h-4" />
             </button>
-            <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-50 mb-4">Buat Entitas Wilayah</h3>
-            <form onSubmit={handleAddSubmit} className="space-y-4">
-              <div>
-                <label className="block text-xs font-medium text-zinc-500 mb-1.5">Nama Wilayah Kantor</label>
-                <input
-                  type="text"
-                  required
-                  value={newOfficeName}
-                  onChange={(e) => setNewOfficeName(e.target.value)}
-                  className="w-full bg-[#ffffff] dark:bg-[#09090b] border border-zinc-200 dark:border-zinc-800 rounded-lg px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-zinc-950 dark:text-zinc-50"
-                  placeholder="Contoh: Kantor Cabang Bali"
-                />
-              </div>
-
-              <div className="flex justify-end gap-2 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setIsAddOpen(false)}
-                  className="bg-[#ffffff] dark:bg-[#262626] hover:bg-zinc-50 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-200 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-2 text-xs font-semibold"
-                >
-                  Batal
-                </button>
-                <button
-                  type="submit"
-                  className="bg-[#059669] hover:bg-[#047857] text-white rounded-lg px-4 py-2 text-xs font-semibold shadow-sm"
-                >
-                  Buat Wilayah
-                </button>
-              </div>
-            </form>
           </div>
-        </div>
-      )}
 
-      {/* EDIT OFFICE MODAL */}
-      {isEditOpen && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-[#0c0c0f] rounded-xl border border-zinc-200 dark:border-zinc-800 shadow-xl w-full max-sm p-6 relative">
-            <button
-              onClick={() => setIsEditOpen(false)}
-              className="absolute top-4 right-4 text-zinc-400 hover:text-zinc-650"
-            >
-              <X className="w-4 h-4" />
-            </button>
-            <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-50 mb-4">Ubah Nama Wilayah</h3>
-            <form onSubmit={handleEditSubmit} className="space-y-4">
-              <div>
-                <label className="block text-xs font-medium text-zinc-500 mb-1.5">Nama Wilayah Kantor</label>
-                <input
-                  type="text"
-                  required
-                  value={editForm.name}
-                  onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
-                  className="w-full bg-[#ffffff] dark:bg-[#09090b] border border-zinc-200 dark:border-zinc-800 rounded-lg px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-zinc-955 dark:text-zinc-50"
-                />
-              </div>
-
-              <div className="flex justify-end gap-2 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setIsEditOpen(false)}
-                  className="bg-[#ffffff] dark:bg-[#262626] hover:bg-zinc-50 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-200 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-2 text-xs font-semibold"
-                >
-                  Batal
-                </button>
-                <button
-                  type="submit"
-                  className="bg-[#059669] hover:bg-[#047857] text-white rounded-lg px-4 py-2 text-xs font-semibold shadow-sm"
-                >
-                  Simpan Perubahan
-                </button>
-              </div>
-            </form>
-          </div>
+          {/* Form Body */}
+          <form onSubmit={panelMode === 'add' ? handleAddSubmit : handleEditSubmit} className="p-5 space-y-4 flex-1">
+            <div>
+              <label className="block text-xs font-medium text-zinc-500 mb-1.5">Nama Wilayah Kantor</label>
+              <input
+                type="text" required
+                value={panelMode === 'add' ? newOfficeName : editForm.name}
+                onChange={(e) => panelMode === 'add'
+                  ? setNewOfficeName(e.target.value)
+                  : setEditForm({ ...editForm, name: e.target.value })}
+                className="w-full bg-zinc-50 dark:bg-[#09090b] border border-zinc-200 dark:border-zinc-800 rounded-lg px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-[#059669] text-zinc-950 dark:text-zinc-50"
+                placeholder="Contoh: Kantor Cabang Bali"
+                autoFocus
+              />
+            </div>
+            <div className="flex gap-2 pt-1">
+              <button type="button" onClick={() => setPanelMode(null)}
+                className="flex-1 bg-white dark:bg-[#262626] hover:bg-zinc-50 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-200 border border-zinc-200 dark:border-zinc-700 rounded-lg py-2 text-xs font-semibold transition-colors">
+                Batal
+              </button>
+              <button type="submit"
+                className="flex-1 bg-[#059669] hover:bg-[#047857] text-white rounded-lg py-2 text-xs font-semibold shadow-sm transition-colors">
+                {panelMode === 'add' ? 'Buat Wilayah' : 'Simpan Perubahan'}
+              </button>
+            </div>
+          </form>
         </div>
       )}
     </div>

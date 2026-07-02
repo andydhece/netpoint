@@ -19,10 +19,8 @@ const UserManagementView = () => {
   const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState('all');
 
-  // Modal states
-  const [isAddOpen, setIsAddOpen] = useState(false);
-  const [isEditOpen, setIsEditOpen] = useState(false);
-  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  // Panel states
+  const [panelMode, setPanelMode] = useState(null); // 'add' | 'edit' | 'delete' | null
   const [targetUser, setTargetUser] = useState(null);
   const [form, setForm] = useState(emptyForm);
   const [formError, setFormError] = useState('');
@@ -37,19 +35,19 @@ const UserManagementView = () => {
   const handleOpenAdd = () => {
     setForm(emptyForm);
     setFormError('');
-    setIsAddOpen(true);
+    setPanelMode('add');
   };
 
   const handleOpenEdit = (user) => {
     setTargetUser(user);
     setForm({ name: user.name, username: user.username, password: user.password || '', role: user.role, jabatan: user.jabatan || '', status: user.status });
     setFormError('');
-    setIsEditOpen(true);
+    setPanelMode('edit');
   };
 
   const handleOpenDelete = (user) => {
     setTargetUser(user);
-    setIsDeleteOpen(true);
+    setPanelMode('delete');
   };
 
   const validateForm = (isEdit = false) => {
@@ -67,7 +65,7 @@ const UserManagementView = () => {
     const err = validateForm(false);
     if (err) { setFormError(err); return; }
     addUser({ ...form, name: form.name.trim(), username: form.username.trim() });
-    setIsAddOpen(false);
+    setPanelMode(null);
   };
 
   const handleEditSubmit = (e) => {
@@ -78,13 +76,13 @@ const UserManagementView = () => {
     const updates = { ...form, name: form.name.trim(), username: form.username.trim() };
     if (!form.password.trim()) delete updates.password;
     editUser(targetUser.id, updates);
-    setIsEditOpen(false);
+    setPanelMode(null);
   };
 
   const handleDeleteConfirm = () => {
     if (targetUser.id === currentUser.id) return; // can't delete self
     deleteUser(targetUser.id);
-    setIsDeleteOpen(false);
+    setPanelMode(null);
   };
 
   const FormFields = ({ isEdit = false }) => (
@@ -160,215 +158,186 @@ const UserManagementView = () => {
   );
 
   return (
-    <div className="space-y-5">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4
-                      bg-white dark:bg-[#0c0c0f] border border-zinc-200 dark:border-zinc-800 rounded-xl p-5 shadow-sm">
-        <div>
-          <h2 className="text-base font-extrabold text-zinc-900 dark:text-zinc-50 flex items-center gap-2">
-            <Users className="w-5 h-5 text-[#059669]" /> Manajemen Pengguna
-          </h2>
-          <p className="text-xs text-zinc-400 mt-0.5">{users.length} akun terdaftar di sistem</p>
+    <div className="flex gap-6 h-full items-start font-sans">
+      {/* Left: User Table */}
+      <div className={`transition-all duration-300 ${panelMode ? 'w-3/5' : 'w-full'} flex flex-col space-y-5`}>
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4
+                        bg-white dark:bg-[#0c0c0f] border border-zinc-200 dark:border-zinc-800 rounded-xl p-5 shadow-sm">
+          <div>
+            <h2 className="text-base font-extrabold text-zinc-900 dark:text-zinc-50 flex items-center gap-2">
+              <Users className="w-5 h-5 text-[#059669]" /> Manajemen Pengguna
+            </h2>
+            <p className="text-xs text-zinc-400 mt-0.5">{users.length} akun terdaftar di sistem</p>
+          </div>
+          <button
+            onClick={handleOpenAdd}
+            className="bg-[#059669] hover:bg-[#047857] text-white rounded-lg px-4 py-2 text-xs font-bold flex items-center gap-2 shadow-sm transition-colors shrink-0"
+          >
+            <Plus className="w-3.5 h-3.5" /> Tambah Pengguna
+          </button>
         </div>
-        <button
-          onClick={handleOpenAdd}
-          className="bg-[#059669] hover:bg-[#047857] text-white rounded-lg px-4 py-2 text-xs font-bold flex items-center gap-2 shadow-sm transition-colors shrink-0"
-        >
-          <Plus className="w-3.5 h-3.5" /> Tambah Pengguna
-        </button>
-      </div>
 
-      {/* Filters */}
-      <div className="flex flex-wrap gap-3 items-center">
-        <div className="relative flex-1 min-w-[200px]">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-400" />
-          <input
-            type="text" value={search} onChange={(e) => setSearch(e.target.value)}
-            placeholder="Cari nama atau username..."
-            className="w-full bg-white dark:bg-[#0c0c0f] border border-zinc-200 dark:border-zinc-800 rounded-lg pl-9 pr-3 py-2 text-xs outline-none focus:ring-2 focus:ring-[#059669]"
-          />
+        {/* Filters */}
+        <div className="flex flex-wrap gap-3 items-center">
+          <div className="relative flex-1 min-w-[200px]">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-400" />
+            <input
+              type="text" value={search} onChange={(e) => setSearch(e.target.value)}
+              placeholder="Cari nama atau username..."
+              className="w-full bg-white dark:bg-[#0c0c0f] border border-zinc-200 dark:border-zinc-800 rounded-lg pl-9 pr-3 py-2 text-xs outline-none focus:ring-2 focus:ring-[#059669]"
+            />
+          </div>
+          <div className="flex bg-zinc-100 dark:bg-zinc-900 p-1 rounded-lg text-[11px] font-semibold gap-0.5">
+            {['all', 'admin', 'pimpinan', 'teknisi'].map(r => (
+              <button key={r}
+                onClick={() => setRoleFilter(r)}
+                className={`px-3 py-1 rounded-md transition-all ${
+                  roleFilter === r
+                    ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-50 shadow-sm'
+                    : 'text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'
+                }`}
+              >
+                {r === 'all' ? 'Semua' : ROLE_META[r].label}
+              </button>
+            ))}
+          </div>
         </div>
-        <div className="flex bg-zinc-100 dark:bg-zinc-900 p-1 rounded-lg text-[11px] font-semibold gap-0.5">
-          {['all', 'admin', 'pimpinan', 'teknisi'].map(r => (
-            <button key={r}
-              onClick={() => setRoleFilter(r)}
-              className={`px-3 py-1 rounded-md transition-all ${
-                roleFilter === r
-                  ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-50 shadow-sm'
-                  : 'text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'
-              }`}
-            >
-              {r === 'all' ? 'Semua' : ROLE_META[r].label}
-            </button>
-          ))}
-        </div>
-      </div>
 
-      {/* User Table */}
-      <div className="bg-white dark:bg-[#0c0c0f] border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-sm overflow-hidden">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b border-zinc-100 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/40">
-              <th className="text-left px-5 py-3 text-xs font-bold text-zinc-500 uppercase tracking-wider">Pengguna</th>
-              <th className="text-left px-4 py-3 text-xs font-bold text-zinc-500 uppercase tracking-wider">Username</th>
-              <th className="text-left px-4 py-3 text-xs font-bold text-zinc-500 uppercase tracking-wider">Peran</th>
-              <th className="text-left px-4 py-3 text-xs font-bold text-zinc-500 uppercase tracking-wider hidden md:table-cell">Jabatan</th>
-              <th className="text-left px-4 py-3 text-xs font-bold text-zinc-500 uppercase tracking-wider">Status</th>
-              <th className="text-left px-4 py-3 text-xs font-bold text-zinc-500 uppercase tracking-wider hidden lg:table-cell">Dibuat</th>
-              <th className="px-4 py-3 text-xs font-bold text-zinc-500 uppercase tracking-wider text-right">Aksi</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800/60">
-            {filtered.map(user => {
-              const meta = ROLE_META[user.role] || ROLE_META.teknisi;
-              const RoleIcon = meta.icon;
-              const isSelf = currentUser && user.id === currentUser.id;
-              return (
-                <tr key={user.id} className={`hover:bg-zinc-50 dark:hover:bg-zinc-900/30 transition-colors ${isSelf ? 'bg-emerald-50/30 dark:bg-emerald-950/10' : ''}`}>
-                  <td className="px-5 py-4">
-                    <div className="flex items-center gap-3">
-                      <div className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold ${
-                        user.role === 'admin' ? 'bg-rose-100 dark:bg-rose-950/30 text-rose-700 dark:text-rose-400' :
-                        user.role === 'pimpinan' ? 'bg-violet-100 dark:bg-violet-950/30 text-violet-700 dark:text-violet-400' :
-                        'bg-sky-100 dark:bg-sky-950/30 text-sky-700 dark:text-sky-400'
-                      }`}>
-                        {user.name.charAt(0).toUpperCase()}
-                      </div>
-                      <div>
-                        <div className="font-semibold text-zinc-900 dark:text-zinc-100 text-sm flex items-center gap-1.5">
-                          {user.name}
-                          {isSelf && <span className="text-[9px] font-bold bg-emerald-100 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 px-1.5 py-0.5 rounded uppercase tracking-wider">Anda</span>}
+        {/* User Table */}
+        <div className="bg-white dark:bg-[#0c0c0f] border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-sm overflow-hidden">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-zinc-100 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/40">
+                <th className="text-left px-5 py-3 text-xs font-bold text-zinc-500 uppercase tracking-wider">Pengguna</th>
+                <th className="text-left px-4 py-3 text-xs font-bold text-zinc-500 uppercase tracking-wider">Username</th>
+                <th className="text-left px-4 py-3 text-xs font-bold text-zinc-500 uppercase tracking-wider">Peran</th>
+                <th className="text-left px-4 py-3 text-xs font-bold text-zinc-500 uppercase tracking-wider hidden md:table-cell">Jabatan</th>
+                <th className="text-left px-4 py-3 text-xs font-bold text-zinc-500 uppercase tracking-wider">Status</th>
+                <th className="text-left px-4 py-3 text-xs font-bold text-zinc-500 uppercase tracking-wider hidden lg:table-cell">Dibuat</th>
+                <th className="px-4 py-3 text-xs font-bold text-zinc-500 uppercase tracking-wider text-right">Aksi</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800/60">
+              {filtered.map(user => {
+                const meta = ROLE_META[user.role] || ROLE_META.teknisi;
+                const RoleIcon = meta.icon;
+                const isSelf = currentUser && user.id === currentUser.id;
+                return (
+                  <tr key={user.id} className={`hover:bg-zinc-50 dark:hover:bg-zinc-900/30 transition-colors ${isSelf ? 'bg-emerald-50/30 dark:bg-emerald-950/10' : ''}`}>
+                    <td className="px-5 py-4">
+                      <div className="flex items-center gap-3">
+                        <div className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold ${
+                          user.role === 'admin' ? 'bg-rose-100 dark:bg-rose-950/30 text-rose-700 dark:text-rose-400' :
+                          user.role === 'pimpinan' ? 'bg-violet-100 dark:bg-violet-950/30 text-violet-700 dark:text-violet-400' :
+                          'bg-sky-100 dark:bg-sky-950/30 text-sky-700 dark:text-sky-400'
+                        }`}>
+                          {user.name.charAt(0).toUpperCase()}
+                        </div>
+                        <div>
+                          <div className="font-semibold text-zinc-900 dark:text-zinc-100 text-sm flex items-center gap-1.5">
+                            {user.name}
+                            {isSelf && <span className="text-[9px] font-bold bg-emerald-100 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 px-1.5 py-0.5 rounded uppercase tracking-wider">Anda</span>}
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  </td>
-                  <td className="px-4 py-4">
-                    <code className="text-xs bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 px-2 py-0.5 rounded font-mono">{user.username}</code>
-                  </td>
-                  <td className="px-4 py-4">
-                    <span className={`inline-flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-1 rounded-full border ${meta.color}`}>
-                      <RoleIcon className="w-3 h-3" /> {meta.label}
-                    </span>
-                  </td>
-                  <td className="px-4 py-4 hidden md:table-cell">
-                    <span className="text-xs text-zinc-500 dark:text-zinc-400">{user.jabatan || '—'}</span>
-                  </td>
-                  <td className="px-4 py-4">
-                    <span className={`inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full ${
-                      user.status === 'aktif'
-                        ? 'bg-emerald-100 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-400'
-                        : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400'
-                    }`}>
-                      {user.status === 'aktif'
-                        ? <><CheckCircle2 className="w-3 h-3" /> Aktif</>
-                        : <><XCircle className="w-3 h-3" /> Nonaktif</>}
-                    </span>
-                  </td>
-                  <td className="px-4 py-4 hidden lg:table-cell">
-                    <span className="text-xs text-zinc-400 font-mono">{user.createdAt}</span>
-                  </td>
-                  <td className="px-4 py-4 text-right">
-                    <div className="flex items-center justify-end gap-1.5">
-                      <button
-                        onClick={() => handleOpenEdit(user)}
-                        className="p-1.5 text-zinc-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/20 rounded-lg transition-colors"
-                        title="Edit pengguna"
-                      >
-                        <Pencil className="w-3.5 h-3.5" />
-                      </button>
-                      <button
-                        onClick={() => handleOpenDelete(user)}
-                        disabled={isSelf}
-                        className="p-1.5 text-zinc-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/20 rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-                        title={isSelf ? 'Tidak dapat menghapus akun sendiri' : 'Hapus pengguna'}
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
+                    </td>
+                    <td className="px-4 py-4">
+                      <code className="text-xs bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 px-2 py-0.5 rounded font-mono">{user.username}</code>
+                    </td>
+                    <td className="px-4 py-4">
+                      <span className={`inline-flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-1 rounded-full border ${meta.color}`}>
+                        <RoleIcon className="w-3 h-3" /> {meta.label}
+                      </span>
+                    </td>
+                    <td className="px-4 py-4 hidden md:table-cell">
+                      <span className="text-xs text-zinc-500 dark:text-zinc-400">{user.jabatan || '—'}</span>
+                    </td>
+                    <td className="px-4 py-4">
+                      <span className={`inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full ${
+                        user.status === 'aktif'
+                          ? 'bg-emerald-100 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-400'
+                          : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400'
+                      }`}>
+                        {user.status === 'aktif'
+                          ? <><CheckCircle2 className="w-3 h-3" /> Aktif</>
+                          : <><XCircle className="w-3 h-3" /> Nonaktif</>}
+                      </span>
+                    </td>
+                    <td className="px-4 py-4 hidden lg:table-cell">
+                      <span className="text-xs text-zinc-400 font-mono">{user.createdAt}</span>
+                    </td>
+                    <td className="px-4 py-4 text-right">
+                      <div className="flex items-center justify-end gap-1.5">
+                        <button
+                          onClick={() => handleOpenEdit(user)}
+                          className="p-1.5 text-zinc-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/20 rounded-lg transition-colors"
+                          title="Edit pengguna"
+                        >
+                          <Pencil className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          onClick={() => handleOpenDelete(user)}
+                          disabled={isSelf}
+                          className="p-1.5 text-zinc-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/20 rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                          title={isSelf ? 'Tidak dapat menghapus akun sendiri' : 'Hapus pengguna'}
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+              {filtered.length === 0 && (
+                <tr>
+                  <td colSpan={7} className="text-center py-12 text-zinc-400 text-xs">
+                    <Users className="w-8 h-8 mx-auto mb-2 text-zinc-300 dark:text-zinc-700" />
+                    Tidak ada pengguna yang sesuai filter.
                   </td>
                 </tr>
-              );
-            })}
-            {filtered.length === 0 && (
-              <tr>
-                <td colSpan={7} className="text-center py-12 text-zinc-400 text-xs">
-                  <Users className="w-8 h-8 mx-auto mb-2 text-zinc-300 dark:text-zinc-700" />
-                  Tidak ada pengguna yang sesuai filter.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
 
-      {/* ── MODAL: ADD USER ── */}
-      {isAddOpen && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-[#0c0c0f] rounded-xl border border-zinc-200 dark:border-zinc-800 shadow-2xl w-full max-w-md p-6 relative">
-            <button onClick={() => setIsAddOpen(false)} className="absolute top-4 right-4 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200">
+      {/* Right Column: Sliding Panel */}
+      {panelMode && (
+        <div className="w-2/5 bg-white dark:bg-[#0c0c0f] border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-sm flex flex-col transition-all duration-300 overflow-y-auto">
+          {/* Header */}
+          <div className="flex items-start justify-between p-5 border-b border-zinc-100 dark:border-zinc-800 sticky top-0 bg-white dark:bg-[#0c0c0f] z-10">
+            <div>
+              <div className="text-[10px] font-bold text-[#059669] uppercase tracking-widest flex items-center gap-1 mb-1">
+                {panelMode === 'delete'
+                  ? <><Trash2 className="w-3 h-3 text-rose-500" /> <span className="text-rose-500">Hapus Pengguna</span></>
+                  : <><Plus className="w-3 h-3" /> {panelMode === 'add' ? 'Pengguna Baru' : 'Edit Pengguna'}</>}
+              </div>
+              <h2 className="text-base font-extrabold text-zinc-900 dark:text-zinc-50">
+                {panelMode === 'add' ? 'Tambah Pengguna Baru'
+                  : panelMode === 'edit' ? `Edit — ${targetUser?.name}`
+                  : 'Konfirmasi Hapus Akun'}
+              </h2>
+            </div>
+            <button onClick={() => setPanelMode(null)} className="p-1 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-500 rounded-lg mt-0.5">
               <X className="w-4 h-4" />
             </button>
-            <h3 className="text-base font-bold text-zinc-900 dark:text-zinc-50 mb-5 flex items-center gap-2">
-              <Plus className="w-4 h-4 text-[#059669]" /> Tambah Pengguna Baru
-            </h3>
-            <form onSubmit={handleAddSubmit} className="space-y-4">
-              <FormFields isEdit={false} />
-              <div className="flex justify-end gap-2 pt-2 border-t border-zinc-100 dark:border-zinc-800">
-                <button type="button" onClick={() => setIsAddOpen(false)}
-                  className="bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-zinc-700 dark:text-zinc-200 rounded-lg px-4 py-2 text-xs font-semibold">
-                  Batal
-                </button>
-                <button type="submit"
-                  className="bg-[#059669] hover:bg-[#047857] text-white rounded-lg px-4 py-2 text-xs font-bold">
-                  Simpan Pengguna
-                </button>
-              </div>
-            </form>
           </div>
-        </div>
-      )}
 
-      {/* ── MODAL: EDIT USER ── */}
-      {isEditOpen && targetUser && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-[#0c0c0f] rounded-xl border border-zinc-200 dark:border-zinc-800 shadow-2xl w-full max-w-md p-6 relative">
-            <button onClick={() => setIsEditOpen(false)} className="absolute top-4 right-4 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200">
-              <X className="w-4 h-4" />
-            </button>
-            <h3 className="text-base font-bold text-zinc-900 dark:text-zinc-50 mb-5 flex items-center gap-2">
-              <Pencil className="w-4 h-4 text-blue-500" /> Edit Pengguna — {targetUser.name}
-            </h3>
-            <form onSubmit={handleEditSubmit} className="space-y-4">
-              <FormFields isEdit={true} />
-              <div className="flex justify-end gap-2 pt-2 border-t border-zinc-100 dark:border-zinc-800">
-                <button type="button" onClick={() => setIsEditOpen(false)}
-                  className="bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-zinc-700 dark:text-zinc-200 rounded-lg px-4 py-2 text-xs font-semibold">
-                  Batal
-                </button>
-                <button type="submit"
-                  className="bg-blue-600 hover:bg-blue-700 text-white rounded-lg px-4 py-2 text-xs font-bold">
-                  Simpan Perubahan
-                </button>
+          {/* Delete Confirmation */}
+          {panelMode === 'delete' && targetUser && (
+            <div className="p-5 flex flex-col items-center text-center gap-4">
+              <div className="w-14 h-14 rounded-full bg-rose-100 dark:bg-rose-950/30 flex items-center justify-center mt-4">
+                <Trash2 className="w-6 h-6 text-rose-600" />
               </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* ── MODAL: DELETE CONFIRM ── */}
-      {isDeleteOpen && targetUser && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-[#0c0c0f] rounded-xl border border-zinc-200 dark:border-zinc-800 shadow-2xl w-full max-w-sm p-6 relative">
-            <div className="flex flex-col items-center text-center gap-3">
-              <div className="w-12 h-12 rounded-full bg-rose-100 dark:bg-rose-950/30 flex items-center justify-center">
-                <Trash2 className="w-5 h-5 text-rose-600" />
+              <div>
+                <p className="text-sm font-bold text-zinc-900 dark:text-zinc-50">{targetUser.name}</p>
+                <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
+                  Akun <strong>({targetUser.username})</strong> akan dihapus permanen dari sistem.
+                </p>
               </div>
-              <h3 className="text-base font-bold text-zinc-900 dark:text-zinc-50">Hapus Pengguna?</h3>
-              <p className="text-sm text-zinc-500 dark:text-zinc-400">
-                Akun <strong className="text-zinc-900 dark:text-zinc-100">{targetUser.name}</strong> ({targetUser.username}) akan dihapus permanen dari sistem.
-              </p>
               <div className="flex gap-2 w-full mt-2">
-                <button onClick={() => setIsDeleteOpen(false)}
+                <button onClick={() => setPanelMode(null)}
                   className="flex-1 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-zinc-700 dark:text-zinc-200 rounded-lg py-2.5 text-xs font-semibold">
                   Batal
                 </button>
@@ -378,7 +347,26 @@ const UserManagementView = () => {
                 </button>
               </div>
             </div>
-          </div>
+          )}
+
+          {/* Add / Edit Form */}
+          {(panelMode === 'add' || panelMode === 'edit') && (
+            <form onSubmit={panelMode === 'add' ? handleAddSubmit : handleEditSubmit} className="p-5 space-y-4 flex-1">
+              <FormFields isEdit={panelMode === 'edit'} />
+              <div className="flex gap-2 pt-2 border-t border-zinc-100 dark:border-zinc-800">
+                <button type="button" onClick={() => setPanelMode(null)}
+                  className="flex-1 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-zinc-700 dark:text-zinc-200 rounded-lg py-2 text-xs font-semibold">
+                  Batal
+                </button>
+                <button type="submit"
+                  className={`flex-1 rounded-lg py-2 text-xs font-bold text-white ${
+                    panelMode === 'add' ? 'bg-[#059669] hover:bg-[#047857]' : 'bg-blue-600 hover:bg-blue-700'
+                  }`}>
+                  {panelMode === 'add' ? 'Simpan Pengguna' : 'Simpan Perubahan'}
+                </button>
+              </div>
+            </form>
+          )}
         </div>
       )}
     </div>

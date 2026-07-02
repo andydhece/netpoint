@@ -1,0 +1,67 @@
+version: '3.8'
+
+services:
+  db:
+    image: mysql:8.0
+    container_name: netpoint_db
+    restart: always
+    environment:
+      MYSQL_DATABASE: netpoint
+      MYSQL_USER: netpoint_user
+      MYSQL_PASSWORD: netpoint_pass
+      MYSQL_ROOT_PASSWORD: root_pass
+    ports:
+      - "33066:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - netpoint_network
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: netpoint_phpmyadmin
+    restart: always
+    environment:
+      PMA_HOST: db
+      PMA_PORT: 3306
+      PMA_ARBITRARY: 1
+    ports:
+      - "8088:80"
+    depends_on:
+      - db
+    networks:
+      - netpoint_network
+
+  backend:
+    build: ./backend
+    container_name: netpoint_backend
+    restart: always
+    ports:
+      - "8081:80"
+    volumes:
+      - ./backend:/var/www/html
+    depends_on:
+      - db
+    networks:
+      - netpoint_network
+
+  frontend:
+    build: ./frontend
+    container_name: netpoint_frontend
+    restart: always
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    depends_on:
+      - backend
+    networks:
+      - netpoint_network
+
+volumes:
+  mysql_data:
+
+networks:
+  netpoint_network:
+    driver: bridge

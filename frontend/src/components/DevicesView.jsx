@@ -15,7 +15,8 @@ import {
   Activity,
   Terminal,
   FileCode,
-  Network
+  Network,
+  Tag
 } from 'lucide-react';
 
 const DevicesView = ({ selectedDeviceId, setSelectedDeviceId }) => {
@@ -28,7 +29,10 @@ const DevicesView = ({ selectedDeviceId, setSelectedDeviceId }) => {
     editDevice, 
     deleteDevice, 
     bulkRebootDevices, 
-    bulkPushConfig
+    bulkPushConfig,
+    deviceTypes,
+    addDeviceType,
+    deleteDeviceType
   } = useContext(AppContext);
 
   // Search & Filter state
@@ -40,9 +44,12 @@ const DevicesView = ({ selectedDeviceId, setSelectedDeviceId }) => {
   // Bulk Selection State
   const [selectedIds, setSelectedIds] = useState([]);
 
-  // Modals
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  // Panels & Modals
+  const [isAddPanelOpen, setIsAddPanelOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isManageTypesOpen, setIsManageTypesOpen] = useState(false);
+  const [newTypeInput, setNewTypeInput] = useState('');
+  const [typeError, setTypeError] = useState('');
   const [addForm, setAddForm] = useState({ name: '', type: 'Router', locationId: '1', ipAddress: '', firmware: 'v1.0.0' });
   const [editForm, setEditForm] = useState({ id: null, name: '', type: 'Router', locationId: '1', ipAddress: '', firmware: 'v2.0.0', status: 'Online' });
 
@@ -82,18 +89,20 @@ const DevicesView = ({ selectedDeviceId, setSelectedDeviceId }) => {
   const handleOpenAdd = () => {
     setAddForm({
       name: `Perangkat-${devices.length + 1}`,
-      type: 'Router',
+      type: deviceTypes[0] || 'Router',
       locationId: locations[0]?.id.toString() || '1',
       ipAddress: `192.168.1.${Math.floor(Math.random() * 254) + 1}`,
       firmware: 'v1.0.0'
     });
-    setIsAddModalOpen(true);
+    setSelectedDeviceId(null);
+    setIsManageTypesOpen(false);
+    setIsAddPanelOpen(true);
   };
 
   const handleAddSubmit = (e) => {
     e.preventDefault();
     addDevice(addForm);
-    setIsAddModalOpen(false);
+    setIsAddPanelOpen(false);
   };
 
   const handleOpenEdit = (dev) => {
@@ -226,10 +235,13 @@ const DevicesView = ({ selectedDeviceId, setSelectedDeviceId }) => {
     };
   };
 
+  // Determine left column width
+  const hasRightPanel = !!activeDevice || isAddPanelOpen || isManageTypesOpen;
+
   return (
     <div className="flex gap-6 h-full items-start relative font-sans">
       {/* Left Column: Device Grid / Index */}
-      <div className={`transition-all duration-300 ${activeDevice ? 'w-3/5' : 'w-full'} flex flex-col space-y-4`}>
+      <div className={`transition-all duration-300 ${hasRightPanel ? 'w-3/5' : 'w-full'} flex flex-col space-y-4`}>
         
         {/* Search, Filter Toolbar */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white dark:bg-[#0c0c0f] border border-zinc-200 dark:border-zinc-800 rounded-xl p-4 shadow-sm">
@@ -253,9 +265,9 @@ const DevicesView = ({ selectedDeviceId, setSelectedDeviceId }) => {
               className="bg-[#ffffff] dark:bg-[#09090b] border border-zinc-200 dark:border-zinc-800 rounded-lg px-3 py-2 text-sm text-zinc-800 dark:text-zinc-200 outline-none focus:ring-2 focus:ring-[#059669]"
             >
               <option value="all">Semua Tipe</option>
-              <option value="Router">Router</option>
-              <option value="Switch">Switch</option>
-              <option value="Access Point">Access Point</option>
+              {deviceTypes.map(t => (
+                <option key={t} value={t}>{t}</option>
+              ))}
             </select>
 
             {/* Status Filter */}
@@ -284,13 +296,24 @@ const DevicesView = ({ selectedDeviceId, setSelectedDeviceId }) => {
           </div>
 
           {currentUser.role === 'admin' && (
-            <button
-              onClick={handleOpenAdd}
-              className="w-full md:w-auto bg-[#059669] hover:bg-[#047857] text-white rounded-lg px-4 py-2 font-medium text-xs flex items-center justify-center gap-2 shadow-sm transition-colors"
-            >
-              <Plus className="w-4 h-4" />
-              Tambah Perangkat
-            </button>
+            <div className="flex gap-2 w-full md:w-auto">
+              <button
+                type="button"
+                onClick={() => { setSelectedDeviceId(null); setIsAddPanelOpen(false); setIsManageTypesOpen(true); }}
+                className="w-full md:w-auto bg-zinc-50 hover:bg-zinc-100 dark:bg-zinc-900 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-250 border border-zinc-200 dark:border-zinc-800 rounded-lg px-4 py-2 font-semibold text-xs flex items-center justify-center gap-2 shadow-sm transition-all duration-150"
+              >
+                <Tag className="w-3.5 h-3.5 text-zinc-400" />
+                Kelola Tipe
+              </button>
+              <button
+                type="button"
+                onClick={handleOpenAdd}
+                className="w-full md:w-auto bg-[#059669] hover:bg-[#047857] text-white rounded-lg px-4 py-2 font-medium text-xs flex items-center justify-center gap-2 shadow-sm transition-colors"
+              >
+                <Plus className="w-4 h-4" />
+                Tambah Perangkat
+              </button>
+            </div>
           )}
         </div>
 
@@ -326,7 +349,7 @@ const DevicesView = ({ selectedDeviceId, setSelectedDeviceId }) => {
                   return (
                     <tr
                       key={dev.id}
-                      onClick={() => setSelectedDeviceId(dev.id)}
+                      onClick={() => { setIsManageTypesOpen(false); setIsAddPanelOpen(false); setSelectedDeviceId(dev.id); }}
                       className={`cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-900/50 transition-colors ${
                         isSelected ? 'bg-blue-50/50 dark:bg-blue-950/20' : ''
                       }`}
@@ -562,96 +585,207 @@ const DevicesView = ({ selectedDeviceId, setSelectedDeviceId }) => {
         </div>
       )}
 
-      {/* ADD DEVICE MODAL */}
-      {isAddModalOpen && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-[#0c0c0f] rounded-xl border border-zinc-200 dark:border-zinc-800 shadow-xl w-full max-w-md p-6 relative">
+      {/* ADD DEVICE — Inline Sliding Panel */}
+      {isAddPanelOpen && (
+        <div className="w-2/5 bg-white dark:bg-[#0c0c0f] border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-sm flex flex-col transition-all duration-300 relative overflow-y-auto">
+
+          {/* Panel Header */}
+          <div className="flex items-start justify-between p-5 border-b border-zinc-100 dark:border-zinc-800 sticky top-0 bg-white dark:bg-[#0c0c0f] z-10">
+            <div>
+              <div className="text-[10px] font-bold text-[#059669] uppercase tracking-widest flex items-center gap-1 mb-1">
+                <Plus className="w-3 h-3" /> Tambah Perangkat Baru
+              </div>
+              <h2 className="text-base font-extrabold text-zinc-900 dark:text-zinc-50">Daftarkan Perangkat Jaringan</h2>
+            </div>
             <button
-              onClick={() => setIsAddModalOpen(false)}
-              className="absolute top-4 right-4 text-zinc-400 hover:text-zinc-600"
+              onClick={() => setIsAddPanelOpen(false)}
+              className="p-1 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-500 dark:text-zinc-400 rounded-lg mt-0.5"
             >
               <X className="w-4 h-4" />
             </button>
-            <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-50 mb-4">Daftarkan Perangkat Jaringan</h3>
-            <form onSubmit={handleAddSubmit} className="space-y-4">
-              <div>
-                <label className="block text-xs font-medium text-zinc-500 mb-1.5">Nama Perangkat</label>
-                <input
-                  type="text"
-                  required
-                  value={addForm.name}
-                  onChange={(e) => setAddForm({ ...addForm, name: e.target.value })}
-                  className="w-full bg-[#ffffff] dark:bg-[#09090b] border border-zinc-200 dark:border-zinc-800 rounded-lg px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-zinc-950 dark:text-zinc-50"
-                  placeholder="Contoh: Router-01"
-                />
-              </div>
+          </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-medium text-zinc-500 mb-1.5">Tipe Perangkat</label>
-                  <select
-                    value={addForm.type}
-                    onChange={(e) => setAddForm({ ...addForm, type: e.target.value })}
-                    className="w-full bg-[#ffffff] dark:bg-[#09090b] border border-zinc-200 dark:border-zinc-800 rounded-lg px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-zinc-850 dark:text-zinc-100"
-                  >
-                    <option value="Router">Router</option>
-                    <option value="Switch">Switch</option>
-                    <option value="Access Point">Access Point</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-zinc-500 mb-1.5">Versi Firmware</label>
-                  <input
-                    type="text"
-                    required
-                    value={addForm.firmware}
-                    onChange={(e) => setAddForm({ ...addForm, firmware: e.target.value })}
-                    className="w-full bg-[#ffffff] dark:bg-[#09090b] border border-zinc-200 dark:border-zinc-800 rounded-lg px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-zinc-950 dark:text-zinc-50"
-                  />
-                </div>
-              </div>
+          {/* Panel Form Body */}
+          <form onSubmit={handleAddSubmit} className="p-5 space-y-4 flex-1">
+            <div>
+              <label className="block text-xs font-medium text-zinc-500 mb-1.5">Nama Perangkat</label>
+              <input
+                type="text"
+                required
+                value={addForm.name}
+                onChange={(e) => setAddForm({ ...addForm, name: e.target.value })}
+                className="w-full bg-zinc-50 dark:bg-[#09090b] border border-zinc-200 dark:border-zinc-800 rounded-lg px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-[#059669] text-zinc-950 dark:text-zinc-50"
+                placeholder="Contoh: Router-01"
+              />
+            </div>
 
+            <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-medium text-zinc-500 mb-1.5">Alamat IPv4</label>
-                <input
-                  type="text"
-                  required
-                  value={addForm.ipAddress}
-                  onChange={(e) => setAddForm({ ...addForm, ipAddress: e.target.value })}
-                  className="w-full bg-[#ffffff] dark:bg-[#09090b] border border-zinc-200 dark:border-zinc-800 rounded-lg px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-zinc-955 dark:text-zinc-50"
-                  placeholder="Contoh: 192.168.1.10"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-medium text-zinc-500 mb-1.5">Titik Pemasangan Jaringan</label>
+                <label className="block text-xs font-medium text-zinc-500 mb-1.5">Tipe Perangkat</label>
                 <select
-                  value={addForm.locationId}
-                  onChange={(e) => setAddForm({ ...addForm, locationId: e.target.value })}
-                  className="w-full bg-[#ffffff] dark:bg-[#09090b] border border-zinc-200 dark:border-zinc-800 rounded-lg px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-zinc-850 dark:text-zinc-100"
+                  value={addForm.type}
+                  onChange={(e) => setAddForm({ ...addForm, type: e.target.value })}
+                  className="w-full bg-zinc-50 dark:bg-[#09090b] border border-zinc-200 dark:border-zinc-800 rounded-lg px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-[#059669] text-zinc-850 dark:text-zinc-100"
                 >
-                  {locations.map(l => (
-                    <option key={l.id} value={l.id}>{l.name}</option>
+                  {deviceTypes.map(t => (
+                    <option key={t} value={t}>{t}</option>
                   ))}
                 </select>
               </div>
+              <div>
+                <label className="block text-xs font-medium text-zinc-500 mb-1.5">Versi Firmware</label>
+                <input
+                  type="text"
+                  required
+                  value={addForm.firmware}
+                  onChange={(e) => setAddForm({ ...addForm, firmware: e.target.value })}
+                  className="w-full bg-zinc-50 dark:bg-[#09090b] border border-zinc-200 dark:border-zinc-800 rounded-lg px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-[#059669] text-zinc-950 dark:text-zinc-50"
+                />
+              </div>
+            </div>
 
-              <div className="flex justify-end gap-2 pt-2">
+            <div>
+              <label className="block text-xs font-medium text-zinc-500 mb-1.5">Alamat IPv4</label>
+              <input
+                type="text"
+                required
+                value={addForm.ipAddress}
+                onChange={(e) => setAddForm({ ...addForm, ipAddress: e.target.value })}
+                className="w-full bg-zinc-50 dark:bg-[#09090b] border border-zinc-200 dark:border-zinc-800 rounded-lg px-3 py-2 text-sm font-mono shadow-sm focus:outline-none focus:ring-2 focus:ring-[#059669] text-zinc-950 dark:text-zinc-50"
+                placeholder="192.168.1.10"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-medium text-zinc-500 mb-1.5">Titik Pemasangan Jaringan</label>
+              <select
+                value={addForm.locationId}
+                onChange={(e) => setAddForm({ ...addForm, locationId: e.target.value })}
+                className="w-full bg-zinc-50 dark:bg-[#09090b] border border-zinc-200 dark:border-zinc-800 rounded-lg px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-[#059669] text-zinc-850 dark:text-zinc-100"
+              >
+                {locations.map(l => (
+                  <option key={l.id} value={l.id}>{l.name}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="flex gap-2 pt-1">
+              <button
+                type="button"
+                onClick={() => setIsAddPanelOpen(false)}
+                className="flex-1 bg-white dark:bg-[#262626] hover:bg-zinc-50 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-200 border border-zinc-200 dark:border-zinc-700 rounded-lg py-2 text-xs font-semibold transition-colors"
+              >
+                Batal
+              </button>
+              <button
+                type="submit"
+                className="flex-1 bg-[#059669] hover:bg-[#047857] text-white rounded-lg py-2 text-xs font-semibold shadow-sm transition-colors"
+              >
+                Simpan Perangkat
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {/* MANAGE DEVICE TYPES — Inline Sliding Panel */}
+      {isManageTypesOpen && (
+        <div className="w-2/5 bg-white dark:bg-[#0c0c0f] border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-sm flex flex-col transition-all duration-300 relative overflow-y-auto">
+
+          {/* Panel Header */}
+          <div className="flex items-start justify-between p-5 border-b border-zinc-100 dark:border-zinc-800 sticky top-0 bg-white dark:bg-[#0c0c0f] z-10">
+            <div>
+              <div className="text-[10px] font-bold text-[#059669] uppercase tracking-widest flex items-center gap-1 mb-1">
+                <Tag className="w-3 h-3 text-[#059669]" /> Kelola Referensi
+              </div>
+              <h2 className="text-base font-extrabold text-zinc-900 dark:text-zinc-50">Tipe Perangkat</h2>
+            </div>
+            <button
+              onClick={() => setIsManageTypesOpen(false)}
+              className="p-1 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-500 dark:text-zinc-400 rounded-lg mt-0.5"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+
+          {/* Panel Content */}
+          <div className="p-5 flex-1 flex flex-col space-y-6">
+            
+            {/* List of current types */}
+            <div>
+              <label className="block text-xs font-semibold text-zinc-500 mb-2">Tipe Terdaftar</label>
+              <div className="divide-y divide-zinc-100 dark:divide-zinc-800 border border-zinc-200 dark:border-zinc-800 rounded-xl overflow-hidden bg-zinc-50/50 dark:bg-zinc-950/20">
+                {deviceTypes.map(t => {
+                  const count = devices.filter(d => d.type === t).length;
+                  const canDelete = count === 0;
+                  return (
+                    <div key={t} className="flex items-center justify-between p-3.5 text-sm">
+                      <div>
+                        <span className="font-semibold text-zinc-900 dark:text-zinc-150">{t}</span>
+                        <span className="text-xs text-zinc-450 dark:text-zinc-550 block mt-0.5">
+                          digunakan oleh {count} perangkat
+                        </span>
+                      </div>
+                      
+                      <button
+                        disabled={!canDelete}
+                        onClick={() => {
+                          if (confirm(`Apakah Anda yakin ingin menghapus tipe "${t}"?`)) {
+                            deleteDeviceType(t);
+                          }
+                        }}
+                        className={`p-1.5 rounded-lg transition-colors ${
+                          canDelete 
+                            ? 'text-zinc-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-955/30' 
+                            : 'text-zinc-300 dark:text-zinc-700 cursor-not-allowed'
+                        }`}
+                        title={canDelete ? 'Hapus tipe' : 'Tipe sedang digunakan oleh perangkat'}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Form to add a new type */}
+            <div className="border-t border-zinc-100 dark:border-zinc-800 pt-4">
+              <label className="block text-xs font-semibold text-zinc-500 mb-1.5">Tambah Tipe Baru</label>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  placeholder="Contoh: Firewall"
+                  value={newTypeInput}
+                  onChange={(e) => {
+                    setNewTypeInput(e.target.value);
+                    setTypeError('');
+                  }}
+                  className="flex-1 bg-zinc-50 dark:bg-[#09090b] border border-zinc-200 dark:border-zinc-800 rounded-lg px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-[#059669] text-zinc-955 dark:text-zinc-50"
+                />
                 <button
                   type="button"
-                  onClick={() => setIsAddModalOpen(false)}
-                  className="bg-[#ffffff] dark:bg-[#262626] hover:bg-zinc-50 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-200 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-2 text-xs font-semibold"
+                  onClick={() => {
+                    if (!newTypeInput.trim()) return;
+                    const val = newTypeInput.trim();
+                    if (deviceTypes.includes(val)) {
+                      setTypeError('Tipe perangkat sudah terdaftar.');
+                      return;
+                    }
+                    addDeviceType(val);
+                    setNewTypeInput('');
+                    setTypeError('');
+                  }}
+                  className="bg-[#059669] hover:bg-[#047857] text-white rounded-lg px-4 py-2 text-xs font-semibold shadow-sm transition-colors"
                 >
-                  Batal
-                </button>
-                <button
-                  type="submit"
-                  className="bg-[#059669] hover:bg-[#047857] text-white rounded-lg px-4 py-2 text-xs font-semibold shadow-sm"
-                >
-                  Simpan Perangkat
+                  Tambah
                 </button>
               </div>
-            </form>
+              {typeError && (
+                <p className="text-xs text-rose-500 mt-1.5">{typeError}</p>
+              )}
+            </div>
+
           </div>
         </div>
       )}
@@ -687,9 +821,9 @@ const DevicesView = ({ selectedDeviceId, setSelectedDeviceId }) => {
                     onChange={(e) => setEditForm({ ...editForm, type: e.target.value })}
                     className="w-full bg-[#ffffff] dark:bg-[#09090b] border border-zinc-200 dark:border-zinc-800 rounded-lg px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-zinc-855 dark:text-zinc-100"
                   >
-                    <option value="Router">Router</option>
-                    <option value="Switch">Switch</option>
-                    <option value="Access Point">Access Point</option>
+                    {deviceTypes.map(t => (
+                      <option key={t} value={t}>{t}</option>
+                    ))}
                   </select>
                 </div>
                 <div>
