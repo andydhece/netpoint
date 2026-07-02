@@ -680,7 +680,7 @@ const LocationsView = ({ selectedLocationId, setSelectedLocationId, setActiveTab
           </div>
 
           {/* Panel Form Body */}
-          <form onSubmit={handleAddSubmit} className="p-5 flex flex-col flex-1 min-h-0 space-y-4">
+          <form onSubmit={handleAddSubmit} className="p-5 flex flex-col h-[550px] space-y-4">
             <div className="flex-1 overflow-y-auto space-y-4 pr-1">
             <div className="grid grid-cols-2 gap-3">
               <div>
@@ -867,7 +867,7 @@ const LocationsView = ({ selectedLocationId, setSelectedLocationId, setActiveTab
           </div>
 
           {/* Panel Form Body */}
-          <form onSubmit={handleEditSubmit} className="p-5 flex flex-col flex-1 min-h-0 space-y-4">
+          <form onSubmit={handleEditSubmit} className="p-5 flex flex-col h-[550px] space-y-4">
             <div className="flex-1 overflow-y-auto space-y-4 pr-1">
             <div className="grid grid-cols-2 gap-3">
               <div>
