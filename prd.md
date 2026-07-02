@@ -47,18 +47,61 @@ This application will centralize the management, monitoring, troubleshooting, an
 
 ## Functional Requirements
 
-## Functional Requirements
+* **Monitoring & Dashboard (Priority: High)** 
+  * Real-time network status map by location (visualized using Leaflet/OpenStreetMap).
+  * Current and historical bandwidth/speed usage per location.
+  * Health check/status (online/offline) for routers and switches.
+  * Incident and alert notifications.
+  * Display and manage installation date for each network location (for audit, lifecycle management, and maintenance planning).
+  * Store GPS coordinates (latitude, longitude) for each location.
+  * Default application language: **Bahasa Indonesia** (UI and all displays).
+  * Display configured bandwidth limit per location and surface alerts when usage approaches (>= 80%) or exceeds the configured limit.
+  * **Kategori Jaringan**: Setiap titik internet diklasifikasikan ke dalam kategori **Perangkat Daerah**, **WiFi Publik**, atau **Instansi Lain** dengan visual badge berwarna khusus (emerald, sky, dan purple) serta opsi pemfilteran data.
+  * Rekap data kantor: tampilkan tabel daftar kantor (didukung 61 Kantor Wilayah/Instansi Daerah asli), jumlah titik per kantor, nama titik, koordinat, kecepatan aktual & maksimal per titik.
+  * Tampilkan rekap jumlah total titik dan total bandwidth per kantor & untuk seluruh organisasi pada dashboard.
+  * Tambahkan fitur ekspor rekap kantor–titik–bandwidth ke PDF (format siap cetak/distribusi) via tombol "Export PDF" di dashboard.
 
-* **Monitoring & Dashboard (Priority: High)** -- Real-time network status map by location -- Current and historical bandwidth/speed usage per location -- Health check/status (online/offline) for routers and switches -- Incident and alert notifications -- Display and manage installation date for each network location (for audit, lifecycle management, and maintenance planning) -- Store GPS coordinates (latitude, longitude) for each location -- Visualize all locations on an interactive map (integrate with Leaflet / OpenStreetMap / Google Maps) -- Default application language: **Bahasa Indonesia** (UI and all displays) -- Display configured bandwidth limit per location and surface alerts when usage approaches or exceeds the configured limit -- Rekap data kantor: tampilkan tabel daftar kantor, jumlah titik per kantor, nama titik, koordinat, kecepatan aktual & maksimal per titik -- Tampilkan rekap jumlah total titik dan total bandwidth per kantor & untuk seluruh organisasi pada dashboard -- Tambahkan fitur ekspor rekap kantor–titik–bandwidth ke PDF (format siap cetak/distribusi) -- Sertakan tombol "Export PDF" pada section rekap di dashboard
-* **Device & Access Management (Priority: High)** -- Device inventory and configuration management -- Centralized control of access permissions and networks (SSID, firewall rules) -- Ability to push bandwidth limit configuration to compatible devices (QoS/bandwidth shaping)
-* **Troubleshooting & Support (Priority: Medium)** -- Automated diagnostic suggestions -- Field report logging and completion tracking -- Issue escalation workflow -- Maintenance report uploads including technician photo and signature (photo/signature stored with the maintenance report)
-* **Reporting & Analytics (Priority: Medium)** -- Downloadable and visual performance reports (uptime, speed, outage frequency) -- Usage trends and anomaly detection -- Ability to group and filter reports by Office assignment -- Include bandwidth limit fields and alerts in reports and exportable data -- Support export of per-office recap (nama titik, koordinat, bandwidth) to PDF for reporting
-* **Maintenance & Scheduling (Priority: Medium)** -- Scheduling of preventive/routine maintenance per location or device (create, view, edit, delete) -- Automatic notifications/reminders for upcoming maintenance to responsible users -- Form to record maintenance reports (date, performed by, actions taken, outcome) -- Maintenance history and downloadable report per location and device -- Maintenance reports should allow uploading a technician photo and signature as evidence/verification -- Automatically decrement spare part stock when parts are used in a maintenance action; show stock change in maintenance report
-* **Office Management (Priority: Low)** -- Create, edit, and list office entities (e.g., Kantor A, Kantor B) -- Associate each network location with an office (office assignment used for accountability and reporting) -- Office list view includes column: Jumlah Titik, Total Bandwidth (sum batas maksimal per kantor) and quick link to view daftar titik per kantor
-* **Location Contact & Spatial Data (Priority: High)** -- Add PIC data for each location (pic_name, pic_contact, pic_position) to support on-site communication and operational responsibility -- Ensure forms and detail pages capture PIC fields and display them in location detail
-* **Inventory & Spare Parts (Priority: Medium)** -- Modul inventarisasi suku cadang jaringan (spareparts) dengan data: nama, jenis, lokasi penyimpanan, stok, dan status. -- Tampilan daftar sparepart, halaman detail stok, dan histori pergerakan stok. -- Pengurangan stok otomatis ketika sparepart dipakai pada maintenance/perbaikan; tangkapan transaksi penggunaan tercatat sebagai sparepart_usage. -- Laporan low-stock dan notifikasi restock threshold. -- Integrasi item sparepart ke form maintenance (pilih sparepart dan jumlah yang digunakan) sehingga penggunaan tercatat ke sparepart_usage dan stok berkurang.
-* **History / Assignment Tracking (Priority: Medium)** -- Riwayat teknisi per lokasi: catat teknisi yang pernah ditugaskan/menangani maintenance di titik tersebut (nama, tanggal, tindakan). -- Riwayat perangkat per lokasi: histori pemasangan/penggantian perangkat termasuk tanggal, device id, dan teknisi terkait. -- Tampilkan riwayat teknisi dan riwayat perangkat di halaman detail lokasi, laporan, dan halaman perangkat untuk keperluan audit dan evaluasi.
-* **Access Control & Ticketing (added requirements)** -- Sistem mendukung role-based access dengan tiga level user utama: **Admin** (akses penuh, konfigurasi & monitoring), **Pimpinan** (akses ke dashboard, laporan, monitoring, export; lihat tanpa hak edit), dan **Tim Lapangan / Teknisi** (akses ticketing, update status tiket, upload bukti, lihat lokasi & tugas yang diassign). -- Hak akses dikontrol melalui field `role` pada tabel `users` (enum: *admin*, *pimpinan*, *teknisi*/*lapangan*). -- Menu, fitur, dan dashboard otomatis menyesuaikan sesuai role user yang login (routing/authorization enforced by backend). -- Modul Tiketing internal: setiap insiden menjadi tiket yang dapat diassign ke teknisi atau tim lapangan. -- Status tiket: *open*, *assigned*, *in progress*, *resolved*, *closed*, *rejected*. -- Admin & Pimpinan dapat melihat rekap tiket dan filter berdasarkan lokasi, status, user, SLA. -- Notifikasi otomatis dikirim ke teknisi/admin saat terjadi update/penugasan/eskalasi tiket. -- Halaman Tiketing: tabel tiket, kolom status, assigned_to, SLA_target, action buttons (assign, update status, upload evidence). -- Tim Lapangan: daftar tiket yang diassign, ability to update progress, upload evidence (photo + signature), dan menutup tiket sesuai workflow.
+* **Device & Access Management (Priority: High)** 
+  * Device inventory and configuration management.
+  * Centralized control of access permissions and networks (SSID, firewall rules).
+  * Smooth sliding side panels (width transitions) replacing all action dialogs for adding/editing locations and devices.
+
+* **Troubleshooting & Support (Priority: Medium)** 
+  * Automated diagnostic suggestions.
+  * Field report logging and completion tracking.
+  * Issue escalation workflow.
+  * Maintenance report uploads including technician photo and signature (stored physically under `/uploads/` folder).
+
+* **Reporting & Analytics (Priority: Medium)** 
+  * Downloadable and visual performance reports (uptime, speed, outage frequency).
+  * Usage trends and anomaly detection.
+  * Group and filter reports by Office/Wilayah and Network Category.
+
+* **Maintenance & Scheduling (Priority: Medium)** 
+  * Scheduling of preventive/routine maintenance per location or device.
+  * Form to record maintenance reports (with technician photo and signature uploads).
+  * Automatic decrementation of spare part stock on maintenance actions.
+
+* **Office & Regional Management (Priority: Low)** 
+  * Manage 61 office entities representing local government departments, sub-districts, and urban villages.
+  * Office list view includes column: Jumlah Titik, Total Bandwidth, and direct links.
+
+* **Location Contact & Spatial Data (Priority: High)** 
+  * Capture PIC details (pic_name, pic_contact, pic_position) and spatial coordinates.
+
+* **Inventory & Spare Parts (Priority: Medium)** 
+  * Network spare parts inventory management.
+  * Low-stock warnings and restock threshold alerts.
+
+* **History / Assignment Tracking (Priority: Medium)** 
+  * Audit logging for technicians and network devices per location.
+
+* **Access Control & Pengaturan (Settings) (added requirements)** 
+  * **Role-Based Access Control (RBAC)**: Support for **Admin** (full access), **Pimpinan** (view-only reporting & export), and **Teknisi** (ticketing & maintenance execution).
+  * **Menu Pengaturan**: Menggantikan menu "Manajemen Pengguna" lama dengan sistem tab ganda:
+    *   **Tab 1: Manajemen Pengguna**: Memungkinkan pengelolaan akun pengguna beserta **Unggah Foto Profil (Avatar)** langsung via Base64 upload yang disimpan sebagai berkas fisik di server `/uploads/avatars/`.
+    *   **Tab 2: Cadangkan & Pulihkan Database**: Fitur backup & restore database penuh (SQL dump generator & execution) dari panel admin. Admin dapat mengunduh backup, melakukan pemulihan (restore) langsung dari berkas lokal, atau mengunggah berkas SQL eksternal untuk dipulihkan.
+  * **Ticketing System**: Internal incident tickets with statuses: *open*, *assigned*, *in progress*, *resolved*, *closed*, *rejected*. Includes photo + signature evidence uploads for closing tickets.
 
 ## User Experience
 
@@ -134,21 +177,27 @@ Across a national network of offices, IT teams and executives struggle with frag
 
 ---
 
-## Technical Cnsiderations
+## Technical Considerations
 
 ### Technical Needs
 
-* Centralized backend with device management, data aggregation, and alerting modules
-* Secure APIs for device polling and status updates
-* Web-based or cross-platform front-end for all user types
-* Stack Guidance: Backend and database will use PHP and MySQL (managed via phpMyAdmin). The frontend will employ Tailwind CSS and DaisyUI for UI styling and components. Data model update: locations table should include an installation_date column (date) to support installation tracking, audit, lifecycle management, and maintenance planning. Additionally, update the data model to support maintenance report attachments and office association:
+* Centralized backend with device management, data aggregation, and alerting modules.
+* Secure APIs for device polling, status updates, and database backup controls.
+* Web-based front-end supporting dynamic widths and transitions.
+* **Stack Guidance & Containerization**:
+  * **Frontend**: React (Vite) running on port `5173`.
+  * **Backend**: Custom PHP API (Apache) running on port `8081`.
+  * **Database**: MySQL 8.0 running on port `33066` on host (credentials saved in `.env`).
+  * **Database Tool**: phpMyAdmin running on port `8088` (using `db` as MySQL host server).
+  * **Dockerized Setup**: Automated environment watch mounting, safe port allocation, and CORS preflight headers configured dynamically in PHP.
 
 Data Model (ERD) updates:
 
-* Table: maintenance_reports — add columns: photo_url (varchar), signature_url (varchar)
-* Table: offices — columns: id (PK), name
-* Table: locations — add column: office_id (FK) referencing offices.id, add columns: latitude (decimal), longitude (decimal), pic_name (varchar), pic_contact (varchar), pic_position (varchar), max_bandwidth_mbps (integer)
-* Table: devices — (if separate devices table exists) add column: max_bandwidth_mbps (integer) to support per-device/endpoint limits where applicable
+* **Table: maintenance_reports** — columns: `photo_url` (varchar), `signature_url` (varchar).
+* **Table: offices** — columns: `id` (PK), `name` (supporting 61 government agencies).
+* **Table: locations** — columns: `office_id` (FK) referencing `offices.id`, `latitude` (decimal), `longitude` (decimal), `pic_name` (varchar), `pic_contact` (varchar), `pic_position` (varchar), `max_bandwidth_mbps` (integer), `category` (`ENUM('Perangkat Daerah', 'WiFi Publik', 'Instansi Lain')` DEFAULT `'Perangkat Daerah'`).
+* **Table: devices** — columns: `max_bandwidth_mbps` (integer), status, CPU/RAM usage.
+* **Table: users** — columns: `role` (`ENUM('admin', 'pimpinan', 'teknisi')`), `avatar` (varchar/text for physical image resolution).
 
 ### Integration Points
 
