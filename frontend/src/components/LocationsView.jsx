@@ -168,7 +168,7 @@ const LocationsView = ({ selectedLocationId, setSelectedLocationId, setActiveTab
   };
 
   // Determine left column width based on panels open
-  const hasRightPanel = activeLocation || isAddPanelOpen;
+  const hasRightPanel = activeLocation || isAddPanelOpen || isEditModalOpen;
 
   return (
     <div className="flex gap-6 h-full items-start relative font-sans">
@@ -844,183 +844,188 @@ const LocationsView = ({ selectedLocationId, setSelectedLocationId, setActiveTab
         </div>
       )}
 
-      {/* EDIT LOCATION MODAL */}
+      {/* EDIT LOCATION PANEL */}
       {isEditModalOpen && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-[#0c0c0f] rounded-xl border border-zinc-200 dark:border-zinc-800 shadow-xl w-full max-w-lg p-6 relative">
+        <div className="w-2/5 bg-white dark:bg-[#0c0c0f] border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-sm flex flex-col h-[650px] transition-all duration-300 relative overflow-y-auto">
+          
+          {/* Panel Header */}
+          <div className="flex items-start justify-between p-5 border-b border-zinc-100 dark:border-zinc-800 sticky top-0 bg-white dark:bg-[#0c0c0f] z-10">
+            <div>
+              <div className="text-[10px] font-bold text-[#059669] uppercase tracking-widest flex items-center gap-1 mb-1">
+                <Edit3 className="w-3 h-3 text-[#059669]" /> Ubah Data Titik
+              </div>
+              <h2 className="text-base font-extrabold text-zinc-900 dark:text-zinc-50">Ubah Data Titik Jaringan</h2>
+            </div>
             <button
               onClick={() => setIsEditModalOpen(false)}
-              className="absolute top-4 right-4 text-zinc-400 hover:text-zinc-650"
+              className="p-1 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-500 dark:text-zinc-400 rounded-lg mt-0.5"
             >
               <X className="w-4 h-4" />
             </button>
-            
-            <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-50 mb-4">Ubah Data Titik Jaringan</h3>
-            
-            <form onSubmit={handleEditSubmit} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-medium text-zinc-500 mb-1.5">Nama Titik</label>
-                  <input
-                    type="text"
-                    required
-                    value={editForm.name}
-                    onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
-                    className="w-full bg-[#ffffff] dark:bg-[#09090b] border border-zinc-200 dark:border-zinc-800 rounded-lg px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-zinc-955 dark:text-zinc-50"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-zinc-500 mb-1.5">Kantor Wilayah / Instansi</label>
-                  <select
-                    value={editForm.officeId}
-                    onChange={(e) => setEditForm({ ...editForm, officeId: e.target.value })}
-                    className="w-full bg-[#ffffff] dark:bg-[#09090b] border border-zinc-200 dark:border-zinc-800 rounded-lg px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-zinc-850 dark:text-zinc-100"
-                  >
-                    {offices.map(o => (
-                      <option key={o.id} value={o.id}>{o.name}</option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-zinc-500 mb-1.5">Kategori Jaringan</label>
-                  <select
-                    value={editForm.category}
-                    onChange={(e) => setEditForm({ ...editForm, category: e.target.value })}
-                    className="w-full bg-[#ffffff] dark:bg-[#09090b] border border-zinc-200 dark:border-zinc-800 rounded-lg px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-zinc-850 dark:text-zinc-100"
-                  >
-                    <option value="Perangkat Daerah">Perangkat Daerah</option>
-                    <option value="WiFi Publik">WiFi Publik</option>
-                    <option value="Instansi Lain">Instansi Lain</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-zinc-500 mb-1.5">Tipe Koneksi</label>
-                  <select
-                    value={editForm.connection_type}
-                    onChange={(e) => setEditForm({ ...editForm, connection_type: e.target.value })}
-                    className="w-full bg-[#ffffff] dark:bg-[#09090b] border border-zinc-200 dark:border-zinc-800 rounded-lg px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-zinc-850 dark:text-zinc-100"
-                  >
-                    <option value="Fiber Optic">Fiber Optic</option>
-                    <option value="Wireless">Wireless</option>
-                    <option value="VSAT">VSAT</option>
-                    <option value="Lainnya">Lainnya</option>
-                  </select>
-                </div>
-                <div className="col-span-2 flex items-center gap-2 py-1">
-                  <input
-                    type="checkbox"
-                    id="edit_is_intranet"
-                    checked={parseInt(editForm.is_intranet) === 1}
-                    onChange={(e) => setEditForm({ ...editForm, is_intranet: e.target.checked ? 1 : 0 })}
-                    className="w-4 h-4 text-blue-600 border-zinc-300 rounded focus:ring-blue-500"
-                  />
-                  <label htmlFor="edit_is_intranet" className="text-xs font-bold text-zinc-600 dark:text-zinc-350 select-none cursor-pointer">
-                    Masuk ke dalam jaringan intra Dinas Kominfo (Intranet)
-                  </label>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-medium text-zinc-500 mb-1.5">Batas Bandwidth (Mbps)</label>
-                  <input
-                    type="number"
-                    required
-                    value={editForm.max_bandwidth_mbps}
-                    onChange={(e) => setEditForm({ ...editForm, max_bandwidth_mbps: e.target.value })}
-                    className="w-full bg-[#ffffff] dark:bg-[#09090b] border border-zinc-200 dark:border-zinc-800 rounded-lg px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-zinc-955 dark:text-zinc-50 font-mono"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-zinc-500 mb-1.5">Tgl Instalasi</label>
-                  <input
-                    type="date"
-                    required
-                    value={editForm.installationDate}
-                    onChange={(e) => setEditForm({ ...editForm, installationDate: e.target.value })}
-                    className="w-full bg-[#ffffff] dark:bg-[#09090b] border border-zinc-200 dark:border-zinc-800 rounded-lg px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-zinc-950 dark:text-zinc-50"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-medium text-zinc-500 mb-1.5">Latitude (GPS)</label>
-                  <input
-                    type="text"
-                    required
-                    value={editForm.latitude}
-                    onChange={(e) => setEditForm({ ...editForm, latitude: e.target.value })}
-                    className="w-full bg-[#ffffff] dark:bg-[#09090b] border border-zinc-200 dark:border-zinc-800 rounded-lg px-3 py-2 text-xs font-mono shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-zinc-950 dark:text-zinc-55"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-zinc-500 mb-1.5">Longitude (GPS)</label>
-                  <input
-                    type="text"
-                    required
-                    value={editForm.longitude}
-                    onChange={(e) => setEditForm({ ...editForm, longitude: e.target.value })}
-                    className="w-full bg-[#ffffff] dark:bg-[#09090b] border border-zinc-200 dark:border-zinc-800 rounded-lg px-3 py-2 text-xs font-mono shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-zinc-950 dark:text-zinc-55"
-                  />
-                </div>
-              </div>
-
-              <div className="bg-zinc-50 dark:bg-zinc-900 border border-zinc-250 dark:border-zinc-800 rounded-lg p-3 space-y-3">
-                <span className="text-xs font-bold text-zinc-500 dark:text-zinc-400 block">Person In Charge (PIC)</span>
-                
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-[10px] font-medium text-zinc-500 mb-1">Nama PIC</label>
-                    <input
-                      type="text"
-                      required
-                      value={editForm.picName}
-                      onChange={(e) => setEditForm({ ...editForm, picName: e.target.value })}
-                      className="w-full bg-[#ffffff] dark:bg-[#09090b] border border-zinc-200 dark:border-zinc-800 rounded-lg px-3 py-1.5 text-xs shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-zinc-950 dark:text-zinc-55"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[10px] font-medium text-zinc-500 mb-1">Kontak PIC</label>
-                    <input
-                      type="text"
-                      required
-                      value={editForm.picContact}
-                      onChange={(e) => setEditForm({ ...editForm, picContact: e.target.value })}
-                      className="w-full bg-[#ffffff] dark:bg-[#09090b] border border-zinc-200 dark:border-zinc-800 rounded-lg px-3 py-1.5 text-xs font-mono shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-zinc-950 dark:text-zinc-55"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-[10px] font-medium text-zinc-500 mb-1">Jabatan PIC</label>
-                  <input
-                    type="text"
-                    required
-                    value={editForm.picPosition}
-                    onChange={(e) => setEditForm({ ...editForm, picPosition: e.target.value })}
-                    className="w-full bg-[#ffffff] dark:bg-[#09090b] border border-zinc-200 dark:border-zinc-800 rounded-lg px-3 py-1.5 text-xs shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-zinc-950 dark:text-zinc-55"
-                  />
-                </div>
-              </div>
-
-              <div className="flex justify-end gap-2 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setIsEditModalOpen(false)}
-                  className="bg-[#ffffff] dark:bg-[#262626] hover:bg-zinc-50 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-200 border border-zinc-200 dark:border-zinc-700 rounded-lg px-4 py-2 text-xs font-semibold"
-                >
-                  Batal
-                </button>
-                <button
-                  type="submit"
-                  className="bg-[#059669] hover:bg-[#047857] text-white rounded-lg px-4 py-2 text-xs font-semibold shadow-sm"
-                >
-                  Simpan Perubahan
-                </button>
-              </div>
-            </form>
           </div>
+
+          {/* Panel Form Body */}
+          <form onSubmit={handleEditSubmit} className="p-5 space-y-4 flex-1">
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-medium text-zinc-500 mb-1.5">Nama Titik</label>
+                <input
+                  type="text"
+                  required
+                  value={editForm.name}
+                  onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                  className="w-full bg-zinc-50 dark:bg-[#09090b] border border-zinc-200 dark:border-zinc-800 rounded-lg px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-[#059669] text-zinc-955 dark:text-zinc-50"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-zinc-500 mb-1.5">Kantor Wilayah / Instansi</label>
+                <select
+                  value={editForm.officeId}
+                  onChange={(e) => setEditForm({ ...editForm, officeId: e.target.value })}
+                  className="w-full bg-zinc-50 dark:bg-[#09090b] border border-zinc-200 dark:border-zinc-800 rounded-lg px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-[#059669] text-zinc-850 dark:text-zinc-100"
+                >
+                  {offices.map(o => (
+                    <option key={o.id} value={o.id}>{o.name}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-zinc-500 mb-1.5">Kategori Jaringan</label>
+                <select
+                  value={editForm.category}
+                  onChange={(e) => setEditForm({ ...editForm, category: e.target.value })}
+                  className="w-full bg-zinc-50 dark:bg-[#09090b] border border-zinc-200 dark:border-zinc-800 rounded-lg px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-[#059669] text-zinc-850 dark:text-zinc-100"
+                >
+                  <option value="Perangkat Daerah">Perangkat Daerah</option>
+                  <option value="WiFi Publik">WiFi Publik</option>
+                  <option value="Instansi Lain">Instansi Lain</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-zinc-500 mb-1.5">Tipe Koneksi</label>
+                <select
+                  value={editForm.connection_type}
+                  onChange={(e) => setEditForm({ ...editForm, connection_type: e.target.value })}
+                  className="w-full bg-zinc-50 dark:bg-[#09090b] border border-zinc-200 dark:border-zinc-800 rounded-lg px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-[#059669] text-zinc-850 dark:text-zinc-100"
+                >
+                  <option value="Fiber Optic">Fiber Optic</option>
+                  <option value="Wireless">Wireless</option>
+                  <option value="VSAT">VSAT</option>
+                  <option value="Lainnya">Lainnya</option>
+                </select>
+              </div>
+              <div className="col-span-2 flex items-center gap-2 py-1">
+                <input
+                  type="checkbox"
+                  id="edit_is_intranet"
+                  checked={parseInt(editForm.is_intranet) === 1}
+                  onChange={(e) => setEditForm({ ...editForm, is_intranet: e.target.checked ? 1 : 0 })}
+                  className="w-4 h-4 text-[#059669] border-zinc-300 rounded focus:ring-[#059669]"
+                />
+                <label htmlFor="edit_is_intranet" className="text-xs font-bold text-zinc-650 dark:text-zinc-300 select-none cursor-pointer">
+                  Masuk ke dalam jaringan intra Dinas Kominfo (Intranet)
+                </label>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-medium text-zinc-500 mb-1.5">Batas Bandwidth (Mbps)</label>
+                <input
+                  type="number"
+                  required
+                  value={editForm.max_bandwidth_mbps}
+                  onChange={(e) => setEditForm({ ...editForm, max_bandwidth_mbps: e.target.value })}
+                  className="w-full bg-zinc-50 dark:bg-[#09090b] border border-zinc-200 dark:border-zinc-800 rounded-lg px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-[#059669] text-zinc-955 dark:text-zinc-55 font-mono"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-zinc-500 mb-1.5">Tgl Instalasi</label>
+                <input
+                  type="date"
+                  required
+                  value={editForm.installationDate}
+                  onChange={(e) => setEditForm({ ...editForm, installationDate: e.target.value })}
+                  className="w-full bg-zinc-50 dark:bg-[#09090b] border border-zinc-200 dark:border-zinc-800 rounded-lg px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-[#059669] text-zinc-950 dark:text-zinc-50"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-medium text-zinc-500 mb-1.5">Latitude (GPS)</label>
+                <input
+                  type="text"
+                  required
+                  value={editForm.latitude}
+                  onChange={(e) => setEditForm({ ...editForm, latitude: e.target.value })}
+                  className="w-full bg-zinc-50 dark:bg-[#09090b] border border-zinc-200 dark:border-zinc-800 rounded-lg px-3 py-2 text-xs font-mono shadow-sm focus:outline-none focus:ring-2 focus:ring-[#059669] text-zinc-950 dark:text-zinc-55"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-zinc-500 mb-1.5">Longitude (GPS)</label>
+                <input
+                  type="text"
+                  required
+                  value={editForm.longitude}
+                  onChange={(e) => setEditForm({ ...editForm, longitude: e.target.value })}
+                  className="w-full bg-zinc-50 dark:bg-[#09090b] border border-zinc-200 dark:border-zinc-800 rounded-lg px-3 py-2 text-xs font-mono shadow-sm focus:outline-none focus:ring-2 focus:ring-[#059669] text-zinc-955 dark:text-zinc-55"
+                />
+              </div>
+            </div>
+
+            <div className="bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-3 space-y-3">
+              <span className="text-xs font-bold text-zinc-500 dark:text-zinc-400 block">Person In Charge (PIC)</span>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[10px] font-medium text-zinc-500 mb-1">Nama PIC</label>
+                  <input
+                    type="text"
+                    required
+                    value={editForm.picName}
+                    onChange={(e) => setEditForm({ ...editForm, picName: e.target.value })}
+                    className="w-full bg-white dark:bg-[#09090b] border border-zinc-200 dark:border-zinc-800 rounded-lg px-3 py-1.5 text-xs shadow-sm focus:outline-none focus:ring-2 focus:ring-[#059669] text-zinc-950 dark:text-zinc-55"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-medium text-zinc-500 mb-1">Kontak PIC</label>
+                  <input
+                    type="text"
+                    required
+                    value={editForm.picContact}
+                    onChange={(e) => setEditForm({ ...editForm, picContact: e.target.value })}
+                    className="w-full bg-white dark:bg-[#09090b] border border-zinc-200 dark:border-zinc-800 rounded-lg px-3 py-1.5 text-xs font-mono shadow-sm focus:outline-none focus:ring-2 focus:ring-[#059669] text-zinc-950 dark:text-zinc-55"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-[10px] font-medium text-zinc-500 mb-1">Jabatan PIC</label>
+                <input
+                  type="text"
+                  required
+                  value={editForm.picPosition}
+                  onChange={(e) => setEditForm({ ...editForm, picPosition: e.target.value })}
+                  className="w-full bg-white dark:bg-[#09090b] border border-zinc-200 dark:border-zinc-800 rounded-lg px-3 py-1.5 text-xs shadow-sm focus:outline-none focus:ring-2 focus:ring-[#059669] text-zinc-950 dark:text-zinc-55"
+                />
+              </div>
+            </div>
+
+            <div className="flex gap-2 pt-1">
+              <button
+                type="button"
+                onClick={() => setIsEditModalOpen(false)}
+                className="flex-1 bg-white dark:bg-[#262626] hover:bg-zinc-50 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-200 border border-zinc-200 dark:border-zinc-700 rounded-lg py-2 text-xs font-semibold transition-colors"
+              >
+                Batal
+              </button>
+              <button
+                type="submit"
+                className="flex-1 bg-[#059669] hover:bg-[#047857] text-white rounded-lg py-2 text-xs font-semibold shadow-sm transition-colors"
+              >
+                Simpan Perubahan
+              </button>
+            </div>
+          </form>
         </div>
       )}
     </div>
