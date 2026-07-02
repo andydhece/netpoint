@@ -36,6 +36,7 @@ const LocationsView = ({ selectedLocationId, setSelectedLocationId, setActiveTab
   const [searchTerm, setSearchTerm] = useState('');
   const [officeFilter, setOfficeFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [categoryFilter, setCategoryFilter] = useState('all');
 
   // Sidebar Detail sub-tab state
   const [sidebarTab, setSidebarTab] = useState('perangkat'); 
@@ -52,7 +53,8 @@ const LocationsView = ({ selectedLocationId, setSelectedLocationId, setActiveTab
     picName: '',
     picContact: '',
     picPosition: 'Teknisi Lapangan',
-    max_bandwidth_mbps: '100'
+    max_bandwidth_mbps: '100',
+    category: 'Perangkat Daerah'
   });
   const [editForm, setEditForm] = useState({ 
     id: null, 
@@ -64,7 +66,8 @@ const LocationsView = ({ selectedLocationId, setSelectedLocationId, setActiveTab
     picName: '',
     picContact: '',
     picPosition: '',
-    max_bandwidth_mbps: '100'
+    max_bandwidth_mbps: '100',
+    category: 'Perangkat Daerah'
   });
 
   const activeLocation = locations.find(l => l.id === selectedLocationId) || null;
@@ -86,7 +89,8 @@ const LocationsView = ({ selectedLocationId, setSelectedLocationId, setActiveTab
                           (loc.picName && loc.picName.toLowerCase().includes(searchTerm.toLowerCase()));
     const matchesOffice = officeFilter === 'all' || loc.officeId === parseInt(officeFilter);
     const matchesStatus = statusFilter === 'all' || loc.status === statusFilter;
-    return matchesSearch && matchesOffice && matchesStatus;
+    const matchesCategory = categoryFilter === 'all' || loc.category === categoryFilter;
+    return matchesSearch && matchesOffice && matchesStatus && matchesCategory;
   });
 
   // Calculate live bandwidth usage
@@ -133,7 +137,8 @@ const LocationsView = ({ selectedLocationId, setSelectedLocationId, setActiveTab
       picName: loc.picName || '',
       picContact: loc.picContact || '',
       picPosition: loc.picPosition || '',
-      max_bandwidth_mbps: (loc.max_bandwidth_mbps || 100).toString()
+      max_bandwidth_mbps: (loc.max_bandwidth_mbps || 100).toString(),
+      category: loc.category || 'Perangkat Daerah'
     });
     setIsEditModalOpen(true);
   };
@@ -197,6 +202,18 @@ const LocationsView = ({ selectedLocationId, setSelectedLocationId, setActiveTab
               <option value="Warning">Peringatan</option>
               <option value="Critical">Kritis (Offline)</option>
             </select>
+
+            {/* Kategori Filter */}
+            <select
+              value={categoryFilter}
+              onChange={(e) => setCategoryFilter(e.target.value)}
+              className="bg-[#ffffff] dark:bg-[#09090b] border border-zinc-200 dark:border-zinc-800 rounded-lg px-3 py-2 text-sm text-zinc-800 dark:text-zinc-200 outline-none focus:ring-2 focus:ring-[#059669]"
+            >
+              <option value="all">Semua Kategori</option>
+              <option value="Perangkat Daerah">Perangkat Daerah</option>
+              <option value="WiFi Publik">WiFi Publik</option>
+              <option value="Instansi Lain">Instansi Lain</option>
+            </select>
           </div>
 
           {currentUser.role === 'admin' && (
@@ -254,7 +271,19 @@ const LocationsView = ({ selectedLocationId, setSelectedLocationId, setActiveTab
                     >
                       <td className="px-4 py-4 font-semibold text-zinc-900 dark:text-zinc-200">
                         <div className="flex flex-col">
-                          <span className="flex items-center gap-1"><MapPin className="w-3.5 h-3.5 text-zinc-400" /> {loc.name}</span>
+                          <span className="flex items-center gap-1.5 flex-wrap">
+                            <MapPin className="w-3.5 h-3.5 text-zinc-400" /> 
+                            {loc.name}
+                            <span className={`text-[9px] px-2 py-0.5 rounded font-bold uppercase ${
+                              loc.category === 'Perangkat Daerah' 
+                                ? 'bg-emerald-100 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-450 border border-emerald-200 dark:border-emerald-900/30' 
+                                : (loc.category === 'WiFi Publik'
+                                    ? 'bg-sky-100 dark:bg-sky-950/30 text-sky-700 dark:text-sky-400 border border-sky-200 dark:border-sky-900/30'
+                                    : 'bg-purple-100 dark:bg-purple-950/30 text-purple-700 dark:text-purple-400 border border-purple-200 dark:border-purple-900/30')
+                            }`}>
+                              {loc.category || 'Perangkat Daerah'}
+                            </span>
+                          </span>
                           <span className="text-[10px] text-zinc-400 pl-4 font-mono">{loc.deviceCount} Perangkat</span>
                         </div>
                       </td>
@@ -331,13 +360,20 @@ const LocationsView = ({ selectedLocationId, setSelectedLocationId, setActiveTab
               <MapPin className="w-3 h-3" /> Detail Titik Lokasi
             </div>
             <h2 className="text-xl font-extrabold text-zinc-955 dark:text-zinc-50 mt-1">{activeLocation.name}</h2>
-            <div className="flex gap-2 items-center mt-1">
+            <div className="flex gap-2 items-center mt-1 flex-wrap">
               <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
                 activeLocation.status === 'OK' 
                   ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/30' 
                   : (activeLocation.status === 'Warning' ? 'bg-amber-100 text-amber-800 dark:bg-amber-950/30' : 'bg-rose-100 text-rose-800 dark:bg-rose-955/30')
               }`}>
                 Status: {activeLocation.status === 'OK' ? 'OK' : (activeLocation.status === 'Warning' ? 'Peringatan' : 'Kritis')}
+              </span>
+              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                activeLocation.category === 'Perangkat Daerah' 
+                  ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/30' 
+                  : (activeLocation.category === 'WiFi Publik' ? 'bg-sky-100 text-sky-850 dark:bg-sky-950/30' : 'bg-purple-100 text-purple-800 dark:bg-purple-950/30')
+              }`}>
+                Kategori: {activeLocation.category || 'Perangkat Daerah'}
               </span>
               <span className="text-[10px] text-zinc-400">Terpantau: {activeLocation.lastSeen}</span>
             </div>
@@ -597,6 +633,18 @@ const LocationsView = ({ selectedLocationId, setSelectedLocationId, setActiveTab
                   ))}
                 </select>
               </div>
+              <div>
+                <label className="block text-xs font-medium text-zinc-500 mb-1.5">Kategori Jaringan</label>
+                <select
+                  value={addForm.category}
+                  onChange={(e) => setAddForm({ ...addForm, category: e.target.value })}
+                  className="w-full bg-zinc-50 dark:bg-[#09090b] border border-zinc-200 dark:border-zinc-800 rounded-lg px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-[#059669] text-zinc-850 dark:text-zinc-100"
+                >
+                  <option value="Perangkat Daerah">Perangkat Daerah</option>
+                  <option value="WiFi Publik">WiFi Publik</option>
+                  <option value="Instansi Lain">Instansi Lain</option>
+                </select>
+              </div>
             </div>
 
             <div className="grid grid-cols-2 gap-3">
@@ -714,7 +762,7 @@ const LocationsView = ({ selectedLocationId, setSelectedLocationId, setActiveTab
             <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-50 mb-4">Ubah Data Titik Jaringan</h3>
             
             <form onSubmit={handleEditSubmit} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-3 gap-4">
                 <div>
                   <label className="block text-xs font-medium text-zinc-500 mb-1.5">Nama Titik</label>
                   <input
@@ -722,7 +770,7 @@ const LocationsView = ({ selectedLocationId, setSelectedLocationId, setActiveTab
                     required
                     value={editForm.name}
                     onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
-                    className="w-full bg-[#ffffff] dark:bg-[#09090b] border border-zinc-200 dark:border-zinc-800 rounded-lg px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-zinc-950 dark:text-zinc-50"
+                    className="w-full bg-[#ffffff] dark:bg-[#09090b] border border-zinc-200 dark:border-zinc-800 rounded-lg px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-zinc-955 dark:text-zinc-50"
                   />
                 </div>
                 <div>
@@ -735,6 +783,18 @@ const LocationsView = ({ selectedLocationId, setSelectedLocationId, setActiveTab
                     {offices.map(o => (
                       <option key={o.id} value={o.id}>{o.name}</option>
                     ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-zinc-500 mb-1.5">Kategori Jaringan</label>
+                  <select
+                    value={editForm.category}
+                    onChange={(e) => setEditForm({ ...editForm, category: e.target.value })}
+                    className="w-full bg-[#ffffff] dark:bg-[#09090b] border border-zinc-200 dark:border-zinc-800 rounded-lg px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-zinc-850 dark:text-zinc-100"
+                  >
+                    <option value="Perangkat Daerah">Perangkat Daerah</option>
+                    <option value="WiFi Publik">WiFi Publik</option>
+                    <option value="Instansi Lain">Instansi Lain</option>
                   </select>
                 </div>
               </div>

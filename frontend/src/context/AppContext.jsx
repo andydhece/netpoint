@@ -233,7 +233,8 @@ export const AppProvider = ({ children }) => {
         picName: updatedData.picName,
         picContact: updatedData.picContact,
         picPosition: updatedData.picPosition,
-        max_bandwidth_mbps: parseInt(updatedData.max_bandwidth_mbps) || loc.max_bandwidth_mbps
+        max_bandwidth_mbps: parseInt(updatedData.max_bandwidth_mbps) || loc.max_bandwidth_mbps,
+        category: updatedData.category || loc.category
       } : loc));
       
       setDevices(prev => prev.map(d => d.locationId === id ? { ...d, officeId: parseInt(updatedData.officeId) } : d));

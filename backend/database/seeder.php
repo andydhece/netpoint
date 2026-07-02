@@ -84,7 +84,7 @@ try {
     $picPositions = ["Teknisi Lapangan", "Koordinator IT Wilayah", "Staf Operasional", "Supervisi Jaringan", "Pimpinan Cabang"];
     $speeds = [50, 100, 150, 200, 300, 500];
 
-    $locStmt = $pdo->prepare("INSERT INTO locations (name, office_id, status, device_count, last_seen, installation_date, latitude, longitude, pic_name, pic_contact, pic_position, max_bandwidth_mbps) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+    $locStmt = $pdo->prepare("INSERT INTO locations (name, office_id, status, device_count, last_seen, installation_date, latitude, longitude, pic_name, pic_contact, pic_position, max_bandwidth_mbps, category) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
     $devStmt = $pdo->prepare("INSERT INTO devices (name, type, location_id, office_id, status, ip_address, firmware, uptime, cpu_usage, ram_usage, bandwidth_in, bandwidth_out, interfaces) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
 
     $locId = 1;
@@ -115,6 +115,9 @@ try {
             $maxBandwidth = $speeds[array_rand($speeds)];
             $lastSeen = mt_rand(1, 59) . "m lalu";
 
+            $categories = ['Perangkat Daerah', 'WiFi Publik', 'Instansi Lain'];
+            $category = $categories[array_rand($categories)];
+
             $locStmt->execute([
                 "{$city['name']} - Titik " . str_pad($i, 2, '0', STR_PAD_LEFT),
                 $city['officeId'],
@@ -127,7 +130,8 @@ try {
                 $picName,
                 $picContact,
                 $picPosition,
-                $maxBandwidth
+                $maxBandwidth,
+                $category
             ]);
 
             // Add devices for this location

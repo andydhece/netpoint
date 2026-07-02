@@ -16,6 +16,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $picContact = isset($input['picContact']) ? trim($input['picContact']) : '';
         $picPosition = isset($input['picPosition']) ? trim($input['picPosition']) : '';
         $maxBandwidth = isset($input['max_bandwidth_mbps']) ? (int)$input['max_bandwidth_mbps'] : 100;
+        $category = isset($input['category']) ? trim($input['category']) : 'Perangkat Daerah';
         
         $status = 'OK';
         $deviceCount = 0;
@@ -25,10 +26,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             jsonResponse(['error' => 'Nama dan Kantor Wilayah harus diisi'], 400);
         }
 
-        $stmt = $pdo->prepare("INSERT INTO locations (name, office_id, status, device_count, last_seen, installation_date, latitude, longitude, pic_name, pic_contact, pic_position, max_bandwidth_mbps) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        $stmt = $pdo->prepare("INSERT INTO locations (name, office_id, status, device_count, last_seen, installation_date, latitude, longitude, pic_name, pic_contact, pic_position, max_bandwidth_mbps, category) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
         $stmt->execute([
             $name, $officeId, $status, $deviceCount, $lastSeen, $installationDate, 
-            $latitude, $longitude, $picName, $picContact, $picPosition, $maxBandwidth
+            $latitude, $longitude, $picName, $picContact, $picPosition, $maxBandwidth, $category
         ]);
         
         $newId = (int)$pdo->lastInsertId();
@@ -48,7 +49,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'picName' => $picName,
                 'picContact' => $picContact,
                 'picPosition' => $picPosition,
-                'max_bandwidth_mbps' => $maxBandwidth
+                'max_bandwidth_mbps' => $maxBandwidth,
+                'category' => $category
             ]
         ]);
     } elseif ($action === 'edit') {
@@ -62,15 +64,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $picContact = isset($input['picContact']) ? trim($input['picContact']) : '';
         $picPosition = isset($input['picPosition']) ? trim($input['picPosition']) : '';
         $maxBandwidth = isset($input['max_bandwidth_mbps']) ? (int)$input['max_bandwidth_mbps'] : 100;
+        $category = isset($input['category']) ? trim($input['category']) : 'Perangkat Daerah';
 
         if (!$id || !$name || !$officeId) {
             jsonResponse(['error' => 'ID, Nama, dan Kantor Wilayah harus diisi'], 400);
         }
 
-        $stmt = $pdo->prepare("UPDATE locations SET name = ?, office_id = ?, installation_date = ?, latitude = ?, longitude = ?, pic_name = ?, pic_contact = ?, pic_position = ?, max_bandwidth_mbps = ? WHERE id = ?");
+        $stmt = $pdo->prepare("UPDATE locations SET name = ?, office_id = ?, installation_date = ?, latitude = ?, longitude = ?, pic_name = ?, pic_contact = ?, pic_position = ?, max_bandwidth_mbps = ?, category = ? WHERE id = ?");
         $stmt->execute([
             $name, $officeId, $installationDate, $latitude, $longitude, 
-            $picName, $picContact, $picPosition, $maxBandwidth, $id
+            $picName, $picContact, $picPosition, $maxBandwidth, $category, $id
         ]);
 
         jsonResponse(['success' => true]);
