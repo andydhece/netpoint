@@ -57,6 +57,7 @@ This application will centralize the management, monitoring, troubleshooting, an
   * Default application language: **Bahasa Indonesia** (UI and all displays).
   * Display configured bandwidth limit per location and surface alerts when usage approaches (>= 80%) or exceeds the configured limit.
   * **Kategori Jaringan**: Setiap titik internet diklasifikasikan ke dalam kategori **Perangkat Daerah**, **WiFi Publik**, atau **Instansi Lain** dengan visual badge berwarna khusus (emerald, sky, dan purple) serta opsi pemfilteran data.
+  * **Tipe Koneksi & Jaringan Intra**: Mendukung informasi tipe koneksi (`Fiber Optic`, `Wireless`, `VSAT`, `Lainnya`) dan status koneksi intranet Dinas Kominfo (`Intranet` / `Internet Umum`) lengkap dengan badge visual di baris tabel, filter pencarian di toolbar, serta opsi pengubahan pada form tambah/edit.
   * Rekap data kantor: tampilkan tabel daftar kantor (didukung 61 Kantor Wilayah/Instansi Daerah asli), jumlah titik per kantor, nama titik, koordinat, kecepatan aktual & maksimal per titik.
   * Tampilkan rekap jumlah total titik dan total bandwidth per kantor & untuk seluruh organisasi pada dashboard.
   * Tambahkan fitur ekspor rekap kantor–titik–bandwidth ke PDF (format siap cetak/distribusi) via tombol "Export PDF" di dashboard.
@@ -195,7 +196,7 @@ Data Model (ERD) updates:
 
 * **Table: maintenance_reports** — columns: `photo_url` (varchar), `signature_url` (varchar).
 * **Table: offices** — columns: `id` (PK), `name` (supporting 61 government agencies).
-* **Table: locations** — columns: `office_id` (FK) referencing `offices.id`, `latitude` (decimal), `longitude` (decimal), `pic_name` (varchar), `pic_contact` (varchar), `pic_position` (varchar), `max_bandwidth_mbps` (integer), `category` (`ENUM('Perangkat Daerah', 'WiFi Publik', 'Instansi Lain')` DEFAULT `'Perangkat Daerah'`).
+* **Table: locations** — columns: `office_id` (FK) referencing `offices.id`, `latitude` (decimal), `longitude` (decimal), `pic_name` (varchar), `pic_contact` (varchar), `pic_position` (varchar), `max_bandwidth_mbps` (integer), `category` (`ENUM('Perangkat Daerah', 'WiFi Publik', 'Instansi Lain')` DEFAULT `'Perangkat Daerah'`), `connection_type` (`ENUM('Fiber Optic', 'Wireless', 'VSAT', 'Lainnya')` DEFAULT `'Fiber Optic'`), `is_intranet` (`TINYINT(1)` DEFAULT `0`).
 * **Table: devices** — columns: `max_bandwidth_mbps` (integer), status, CPU/RAM usage.
 * **Table: users** — columns: `role` (`ENUM('admin', 'pimpinan', 'teknisi')`), `avatar` (varchar/text for physical image resolution).
 
