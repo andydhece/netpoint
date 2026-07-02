@@ -30,6 +30,8 @@ CREATE TABLE IF NOT EXISTS locations (
     pic_position VARCHAR(100) NOT NULL,
     max_bandwidth_mbps INT NOT NULL DEFAULT 100,
     category ENUM('Perangkat Daerah', 'WiFi Publik', 'Instansi Lain') NOT NULL DEFAULT 'Perangkat Daerah',
+    connection_type ENUM('Fiber Optic', 'Wireless', 'VSAT', 'Lainnya') NOT NULL DEFAULT 'Fiber Optic',
+    is_intranet TINYINT(1) NOT NULL DEFAULT 0,
     FOREIGN KEY (office_id) REFERENCES offices(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 

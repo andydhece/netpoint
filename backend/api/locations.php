@@ -17,6 +17,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $picPosition = isset($input['picPosition']) ? trim($input['picPosition']) : '';
         $maxBandwidth = isset($input['max_bandwidth_mbps']) ? (int)$input['max_bandwidth_mbps'] : 100;
         $category = isset($input['category']) ? trim($input['category']) : 'Perangkat Daerah';
+        $connectionType = isset($input['connection_type']) ? trim($input['connection_type']) : 'Fiber Optic';
+        $isIntranet = isset($input['is_intranet']) ? (int)$input['is_intranet'] : 0;
         
         $status = 'OK';
         $deviceCount = 0;
@@ -26,10 +28,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             jsonResponse(['error' => 'Nama dan Kantor Wilayah harus diisi'], 400);
         }
 
-        $stmt = $pdo->prepare("INSERT INTO locations (name, office_id, status, device_count, last_seen, installation_date, latitude, longitude, pic_name, pic_contact, pic_position, max_bandwidth_mbps, category) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        $stmt = $pdo->prepare("INSERT INTO locations (name, office_id, status, device_count, last_seen, installation_date, latitude, longitude, pic_name, pic_contact, pic_position, max_bandwidth_mbps, category, connection_type, is_intranet) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
         $stmt->execute([
             $name, $officeId, $status, $deviceCount, $lastSeen, $installationDate, 
-            $latitude, $longitude, $picName, $picContact, $picPosition, $maxBandwidth, $category
+            $latitude, $longitude, $picName, $picContact, $picPosition, $maxBandwidth, $category, $connectionType, $isIntranet
         ]);
         
         $newId = (int)$pdo->lastInsertId();
@@ -50,7 +52,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'picContact' => $picContact,
                 'picPosition' => $picPosition,
                 'max_bandwidth_mbps' => $maxBandwidth,
-                'category' => $category
+                'category' => $category,
+                'connection_type' => $connectionType,
+                'is_intranet' => $isIntranet
             ]
         ]);
     } elseif ($action === 'edit') {
@@ -65,15 +69,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $picPosition = isset($input['picPosition']) ? trim($input['picPosition']) : '';
         $maxBandwidth = isset($input['max_bandwidth_mbps']) ? (int)$input['max_bandwidth_mbps'] : 100;
         $category = isset($input['category']) ? trim($input['category']) : 'Perangkat Daerah';
+        $connectionType = isset($input['connection_type']) ? trim($input['connection_type']) : 'Fiber Optic';
+        $isIntranet = isset($input['is_intranet']) ? (int)$input['is_intranet'] : 0;
 
         if (!$id || !$name || !$officeId) {
             jsonResponse(['error' => 'ID, Nama, dan Kantor Wilayah harus diisi'], 400);
         }
 
-        $stmt = $pdo->prepare("UPDATE locations SET name = ?, office_id = ?, installation_date = ?, latitude = ?, longitude = ?, pic_name = ?, pic_contact = ?, pic_position = ?, max_bandwidth_mbps = ?, category = ? WHERE id = ?");
+        $stmt = $pdo->prepare("UPDATE locations SET name = ?, office_id = ?, installation_date = ?, latitude = ?, longitude = ?, pic_name = ?, pic_contact = ?, pic_position = ?, max_bandwidth_mbps = ?, category = ?, connection_type = ?, is_intranet = ? WHERE id = ?");
         $stmt->execute([
             $name, $officeId, $installationDate, $latitude, $longitude, 
-            $picName, $picContact, $picPosition, $maxBandwidth, $category, $id
+            $picName, $picContact, $picPosition, $maxBandwidth, $category, $connectionType, $isIntranet, $id
         ]);
 
         jsonResponse(['success' => true]);

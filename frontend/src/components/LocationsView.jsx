@@ -15,7 +15,8 @@ import {
   Laptop,
   Network,
   Wrench,
-  Cpu
+  Cpu,
+  Globe
 } from 'lucide-react';
 
 const LocationsView = ({ selectedLocationId, setSelectedLocationId, setActiveTab }) => {
@@ -37,6 +38,8 @@ const LocationsView = ({ selectedLocationId, setSelectedLocationId, setActiveTab
   const [officeFilter, setOfficeFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
   const [categoryFilter, setCategoryFilter] = useState('all');
+  const [connectionFilter, setConnectionFilter] = useState('all');
+  const [intranetFilter, setIntranetFilter] = useState('all');
 
   // Sidebar Detail sub-tab state
   const [sidebarTab, setSidebarTab] = useState('perangkat'); 
@@ -54,7 +57,9 @@ const LocationsView = ({ selectedLocationId, setSelectedLocationId, setActiveTab
     picContact: '',
     picPosition: 'Teknisi Lapangan',
     max_bandwidth_mbps: '100',
-    category: 'Perangkat Daerah'
+    category: 'Perangkat Daerah',
+    connection_type: 'Fiber Optic',
+    is_intranet: 0
   });
   const [editForm, setEditForm] = useState({ 
     id: null, 
@@ -67,7 +72,9 @@ const LocationsView = ({ selectedLocationId, setSelectedLocationId, setActiveTab
     picContact: '',
     picPosition: '',
     max_bandwidth_mbps: '100',
-    category: 'Perangkat Daerah'
+    category: 'Perangkat Daerah',
+    connection_type: 'Fiber Optic',
+    is_intranet: 0
   });
 
   const activeLocation = locations.find(l => l.id === selectedLocationId) || null;
@@ -90,7 +97,9 @@ const LocationsView = ({ selectedLocationId, setSelectedLocationId, setActiveTab
     const matchesOffice = officeFilter === 'all' || loc.officeId === parseInt(officeFilter);
     const matchesStatus = statusFilter === 'all' || loc.status === statusFilter;
     const matchesCategory = categoryFilter === 'all' || loc.category === categoryFilter;
-    return matchesSearch && matchesOffice && matchesStatus && matchesCategory;
+    const matchesConnection = connectionFilter === 'all' || loc.connection_type === connectionFilter;
+    const matchesIntranet = intranetFilter === 'all' || (intranetFilter === '1' ? parseInt(loc.is_intranet) === 1 : parseInt(loc.is_intranet) === 0);
+    return matchesSearch && matchesOffice && matchesStatus && matchesCategory && matchesConnection && matchesIntranet;
   });
 
   // Calculate live bandwidth usage
@@ -138,7 +147,9 @@ const LocationsView = ({ selectedLocationId, setSelectedLocationId, setActiveTab
       picContact: loc.picContact || '',
       picPosition: loc.picPosition || '',
       max_bandwidth_mbps: (loc.max_bandwidth_mbps || 100).toString(),
-      category: loc.category || 'Perangkat Daerah'
+      category: loc.category || 'Perangkat Daerah',
+      connection_type: loc.connection_type || 'Fiber Optic',
+      is_intranet: loc.is_intranet != null ? parseInt(loc.is_intranet) : 0
     });
     setIsEditModalOpen(true);
   };
@@ -214,6 +225,30 @@ const LocationsView = ({ selectedLocationId, setSelectedLocationId, setActiveTab
               <option value="WiFi Publik">WiFi Publik</option>
               <option value="Instansi Lain">Instansi Lain</option>
             </select>
+
+            {/* Tipe Koneksi Filter */}
+            <select
+              value={connectionFilter}
+              onChange={(e) => setConnectionFilter(e.target.value)}
+              className="bg-[#ffffff] dark:bg-[#09090b] border border-zinc-200 dark:border-zinc-800 rounded-lg px-3 py-2 text-sm text-zinc-800 dark:text-zinc-200 outline-none focus:ring-2 focus:ring-[#059669]"
+            >
+              <option value="all">Semua Koneksi</option>
+              <option value="Fiber Optic">Fiber Optic</option>
+              <option value="Wireless">Wireless</option>
+              <option value="VSAT">VSAT</option>
+              <option value="Lainnya">Lainnya</option>
+            </select>
+
+            {/* Intranet Filter */}
+            <select
+              value={intranetFilter}
+              onChange={(e) => setIntranetFilter(e.target.value)}
+              className="bg-[#ffffff] dark:bg-[#09090b] border border-zinc-200 dark:border-zinc-800 rounded-lg px-3 py-2 text-sm text-zinc-800 dark:text-zinc-200 outline-none focus:ring-2 focus:ring-[#059669]"
+            >
+              <option value="all">Semua Jaringan Intra</option>
+              <option value="1">Intra Kominfo</option>
+              <option value="0">Non-Intranet (Internet Umum)</option>
+            </select>
           </div>
 
           {currentUser.role === 'admin' && (
@@ -284,7 +319,14 @@ const LocationsView = ({ selectedLocationId, setSelectedLocationId, setActiveTab
                               {loc.category || 'Perangkat Daerah'}
                             </span>
                           </span>
-                          <span className="text-[10px] text-zinc-400 pl-4 font-mono">{loc.deviceCount} Perangkat</span>
+                          <span className="text-[10px] text-zinc-400 pl-4 font-mono flex items-center gap-2 mt-0.5 flex-wrap">
+                            <span>{loc.deviceCount} Perangkat</span>
+                            <span className="text-zinc-300 dark:text-zinc-700">•</span>
+                            <span className="bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 px-1.5 py-0.5 rounded text-[9px] font-semibold">{loc.connection_type || 'Fiber Optic'}</span>
+                            {parseInt(loc.is_intranet) === 1 && (
+                              <span className="bg-indigo-50 dark:bg-indigo-950/30 text-indigo-600 dark:text-indigo-400 border border-indigo-150 dark:border-indigo-900/30 px-1.5 py-0.5 rounded text-[9px] font-bold">Intranet</span>
+                            )}
+                          </span>
                         </div>
                       </td>
                       <td className="px-4 py-4">
@@ -375,6 +417,14 @@ const LocationsView = ({ selectedLocationId, setSelectedLocationId, setActiveTab
               }`}>
                 Kategori: {activeLocation.category || 'Perangkat Daerah'}
               </span>
+              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300`}>
+                Koneksi: {activeLocation.connection_type || 'Fiber Optic'}
+              </span>
+              {parseInt(activeLocation.is_intranet) === 1 && (
+                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 dark:bg-indigo-950/30 dark:text-indigo-400 border border-indigo-150 dark:border-indigo-900/30`}>
+                  Intranet Kominfo
+                </span>
+              )}
               <span className="text-[10px] text-zinc-400">Terpantau: {activeLocation.lastSeen}</span>
             </div>
           </div>
@@ -544,6 +594,27 @@ const LocationsView = ({ selectedLocationId, setSelectedLocationId, setActiveTab
                 </div>
               </div>
 
+              {/* Connection & Network info */}
+              <div className="bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-3 text-xs">
+                <div className="text-zinc-400 font-semibold mb-2 flex items-center gap-1.5"><Globe className="w-3.5 h-3.5" /> Detail Teknis Koneksi</div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <span className="text-[10px] text-zinc-400 block font-sans">Tipe Koneksi</span>
+                    <span className="font-bold text-zinc-850 dark:text-zinc-200 font-sans">{activeLocation.connection_type || 'Fiber Optic'}</span>
+                  </div>
+                  <div>
+                    <span className="text-[10px] text-zinc-400 block font-sans">Jaringan Intra Kominfo</span>
+                    <span className={`inline-flex px-1.5 py-0.5 rounded text-[10px] font-bold mt-0.5 ${
+                      parseInt(activeLocation.is_intranet) === 1
+                        ? 'bg-indigo-50 text-indigo-700 dark:bg-indigo-950/30 dark:text-indigo-400 border border-indigo-150 dark:border-indigo-900/30'
+                        : 'bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-400 border border-zinc-250 dark:border-zinc-700'
+                    }`}>
+                      {parseInt(activeLocation.is_intranet) === 1 ? 'Terhubung (Ya)' : 'Tidak Terhubung'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
               {/* GPS coordinates details */}
               <div className="bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-3 text-xs">
                 <div className="text-zinc-400 font-semibold mb-2 flex items-center gap-1.5"><Locate className="w-3.5 h-3.5" /> Koordinat Geografis (GPS)</div>
@@ -610,7 +681,7 @@ const LocationsView = ({ selectedLocationId, setSelectedLocationId, setActiveTab
 
           {/* Panel Form Body */}
           <form onSubmit={handleAddSubmit} className="p-5 space-y-4 flex-1">
-            <div className="grid grid-cols-1 gap-3">
+            <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="block text-xs font-medium text-zinc-500 mb-1.5">Nama Titik / Lokasi</label>
                 <input
@@ -622,7 +693,7 @@ const LocationsView = ({ selectedLocationId, setSelectedLocationId, setActiveTab
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-zinc-500 mb-1.5">Kantor Wilayah</label>
+                <label className="block text-xs font-medium text-zinc-500 mb-1.5">Kantor Wilayah / Instansi</label>
                 <select
                   value={addForm.officeId}
                   onChange={(e) => setAddForm({ ...addForm, officeId: e.target.value })}
@@ -644,6 +715,31 @@ const LocationsView = ({ selectedLocationId, setSelectedLocationId, setActiveTab
                   <option value="WiFi Publik">WiFi Publik</option>
                   <option value="Instansi Lain">Instansi Lain</option>
                 </select>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-zinc-500 mb-1.5">Tipe Koneksi</label>
+                <select
+                  value={addForm.connection_type}
+                  onChange={(e) => setAddForm({ ...addForm, connection_type: e.target.value })}
+                  className="w-full bg-zinc-50 dark:bg-[#09090b] border border-zinc-200 dark:border-zinc-800 rounded-lg px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-[#059669] text-zinc-850 dark:text-zinc-100"
+                >
+                  <option value="Fiber Optic">Fiber Optic</option>
+                  <option value="Wireless">Wireless</option>
+                  <option value="VSAT">VSAT</option>
+                  <option value="Lainnya">Lainnya</option>
+                </select>
+              </div>
+              <div className="col-span-2 flex items-center gap-2 py-1">
+                <input
+                  type="checkbox"
+                  id="add_is_intranet"
+                  checked={parseInt(addForm.is_intranet) === 1}
+                  onChange={(e) => setAddForm({ ...addForm, is_intranet: e.target.checked ? 1 : 0 })}
+                  className="w-4 h-4 text-[#059669] border-zinc-300 rounded focus:ring-[#059669]"
+                />
+                <label htmlFor="add_is_intranet" className="text-xs font-bold text-zinc-600 dark:text-zinc-300 select-none cursor-pointer">
+                  Masuk ke dalam jaringan intra Dinas Kominfo (Intranet)
+                </label>
               </div>
             </div>
 
@@ -762,7 +858,7 @@ const LocationsView = ({ selectedLocationId, setSelectedLocationId, setActiveTab
             <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-50 mb-4">Ubah Data Titik Jaringan</h3>
             
             <form onSubmit={handleEditSubmit} className="space-y-4">
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-medium text-zinc-500 mb-1.5">Nama Titik</label>
                   <input
@@ -774,7 +870,7 @@ const LocationsView = ({ selectedLocationId, setSelectedLocationId, setActiveTab
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-zinc-500 mb-1.5">Kantor Wilayah</label>
+                  <label className="block text-xs font-medium text-zinc-500 mb-1.5">Kantor Wilayah / Instansi</label>
                   <select
                     value={editForm.officeId}
                     onChange={(e) => setEditForm({ ...editForm, officeId: e.target.value })}
@@ -796,6 +892,31 @@ const LocationsView = ({ selectedLocationId, setSelectedLocationId, setActiveTab
                     <option value="WiFi Publik">WiFi Publik</option>
                     <option value="Instansi Lain">Instansi Lain</option>
                   </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-zinc-500 mb-1.5">Tipe Koneksi</label>
+                  <select
+                    value={editForm.connection_type}
+                    onChange={(e) => setEditForm({ ...editForm, connection_type: e.target.value })}
+                    className="w-full bg-[#ffffff] dark:bg-[#09090b] border border-zinc-200 dark:border-zinc-800 rounded-lg px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-zinc-850 dark:text-zinc-100"
+                  >
+                    <option value="Fiber Optic">Fiber Optic</option>
+                    <option value="Wireless">Wireless</option>
+                    <option value="VSAT">VSAT</option>
+                    <option value="Lainnya">Lainnya</option>
+                  </select>
+                </div>
+                <div className="col-span-2 flex items-center gap-2 py-1">
+                  <input
+                    type="checkbox"
+                    id="edit_is_intranet"
+                    checked={parseInt(editForm.is_intranet) === 1}
+                    onChange={(e) => setEditForm({ ...editForm, is_intranet: e.target.checked ? 1 : 0 })}
+                    className="w-4 h-4 text-blue-600 border-zinc-300 rounded focus:ring-blue-500"
+                  />
+                  <label htmlFor="edit_is_intranet" className="text-xs font-bold text-zinc-600 dark:text-zinc-350 select-none cursor-pointer">
+                    Masuk ke dalam jaringan intra Dinas Kominfo (Intranet)
+                  </label>
                 </div>
               </div>
 

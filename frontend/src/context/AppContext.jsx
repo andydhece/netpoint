@@ -234,7 +234,9 @@ export const AppProvider = ({ children }) => {
         picContact: updatedData.picContact,
         picPosition: updatedData.picPosition,
         max_bandwidth_mbps: parseInt(updatedData.max_bandwidth_mbps) || loc.max_bandwidth_mbps,
-        category: updatedData.category || loc.category
+        category: updatedData.category || loc.category,
+        connection_type: updatedData.connection_type || loc.connection_type,
+        is_intranet: updatedData.is_intranet !== undefined ? parseInt(updatedData.is_intranet) : loc.is_intranet
       } : loc));
       
       setDevices(prev => prev.map(d => d.locationId === id ? { ...d, officeId: parseInt(updatedData.officeId) } : d));
