@@ -661,10 +661,10 @@ const LocationsView = ({ selectedLocationId, setSelectedLocationId, setActiveTab
 
       {/* ADD LOCATION â€” Inline Sliding Panel (replaces modal popup) */}
       {isAddPanelOpen && (
-        <div className="w-2/5 bg-white dark:bg-[#0c0c0f] border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-sm flex flex-col h-[650px] transition-all duration-300 relative overflow-y-auto">
+        <div className="w-2/5 bg-white dark:bg-[#0c0c0f] border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-sm flex flex-col h-[650px] transition-all duration-300 relative overflow-hidden">
           
           {/* Panel Header */}
-          <div className="flex items-start justify-between p-5 border-b border-zinc-100 dark:border-zinc-800 sticky top-0 bg-white dark:bg-[#0c0c0f] z-10">
+          <div className="flex items-start justify-between p-5 border-b border-zinc-150 dark:border-zinc-800 sticky top-0 bg-white dark:bg-[#0c0c0f] z-10">
             <div>
               <div className="text-[10px] font-bold text-[#059669] uppercase tracking-widest flex items-center gap-1 mb-1">
                 <Plus className="w-3 h-3" /> Tambah Titik Baru
@@ -680,7 +680,8 @@ const LocationsView = ({ selectedLocationId, setSelectedLocationId, setActiveTab
           </div>
 
           {/* Panel Form Body */}
-          <form onSubmit={handleAddSubmit} className="p-5 space-y-4 flex-1">
+          <form onSubmit={handleAddSubmit} className="p-5 flex flex-col flex-1 min-h-0 space-y-4">
+            <div className="flex-1 overflow-y-auto space-y-4 pr-1">
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="block text-xs font-medium text-zinc-500 mb-1.5">Nama Titik / Lokasi</label>
@@ -824,8 +825,9 @@ const LocationsView = ({ selectedLocationId, setSelectedLocationId, setActiveTab
                 />
               </div>
             </div>
+            </div>
 
-            <div className="flex gap-2 pt-1">
+            <div className="flex gap-2 pt-3 border-t border-zinc-150 dark:border-zinc-800 bg-white dark:bg-[#0c0c0f]">
               <button
                 type="button"
                 onClick={() => setIsAddPanelOpen(false)}
@@ -846,10 +848,10 @@ const LocationsView = ({ selectedLocationId, setSelectedLocationId, setActiveTab
 
       {/* EDIT LOCATION PANEL */}
       {isEditModalOpen && (
-        <div className="w-2/5 bg-white dark:bg-[#0c0c0f] border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-sm flex flex-col h-[650px] transition-all duration-300 relative overflow-y-auto">
+        <div className="w-2/5 bg-white dark:bg-[#0c0c0f] border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-sm flex flex-col h-[650px] transition-all duration-300 relative overflow-hidden">
           
           {/* Panel Header */}
-          <div className="flex items-start justify-between p-5 border-b border-zinc-100 dark:border-zinc-800 sticky top-0 bg-white dark:bg-[#0c0c0f] z-10">
+          <div className="flex items-start justify-between p-5 border-b border-zinc-150 dark:border-zinc-800 sticky top-0 bg-white dark:bg-[#0c0c0f] z-10">
             <div>
               <div className="text-[10px] font-bold text-[#059669] uppercase tracking-widest flex items-center gap-1 mb-1">
                 <Edit3 className="w-3 h-3 text-[#059669]" /> Ubah Data Titik
@@ -865,7 +867,8 @@ const LocationsView = ({ selectedLocationId, setSelectedLocationId, setActiveTab
           </div>
 
           {/* Panel Form Body */}
-          <form onSubmit={handleEditSubmit} className="p-5 space-y-4 flex-1">
+          <form onSubmit={handleEditSubmit} className="p-5 flex flex-col flex-1 min-h-0 space-y-4">
+            <div className="flex-1 overflow-y-auto space-y-4 pr-1">
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="block text-xs font-medium text-zinc-500 mb-1.5">Nama Titik</label>
@@ -1009,8 +1012,9 @@ const LocationsView = ({ selectedLocationId, setSelectedLocationId, setActiveTab
                 />
               </div>
             </div>
+            </div>
 
-            <div className="flex gap-2 pt-1">
+            <div className="flex gap-2 pt-3 border-t border-zinc-150 dark:border-zinc-800 bg-white dark:bg-[#0c0c0f]">
               <button
                 type="button"
                 onClick={() => setIsEditModalOpen(false)}
